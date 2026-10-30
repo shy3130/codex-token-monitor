@@ -53,7 +53,7 @@ PYTHONDONTWRITEBYTECODE=1 python3 tests/integration_smoke.py
 node --test tests/test_ui.js
 ```
 
-Python 单元测试覆盖会话统计、遥测匹配、费用计算、分页与 MCP 输入校验。端到端验证会启动临时采集服务、写入虚构会话、发送模拟遥测，再经 HTTP 和 stdio MCP 读取结果。界面脚本测试验证刷新失败恢复、分页和显示行为。
+Python 单元测试覆盖会话统计、遥测匹配、费用计算、分页、MCP 输入校验及语言元数据。端到端验证会启动临时采集服务、写入虚构会话、发送模拟遥测，再经 HTTP 和 stdio MCP 读取结果。界面脚本测试验证刷新失败恢复、分页、语言优先级、日期格式和显示行为。
 
 CI 在 Linux 的 Python 3.9、3.13 和 macOS 的 Python 3.13 上运行 Python 检查，另用 Node.js 22 运行界面脚本测试。真实浏览器截图检查为可选本地步骤，操作见 [截图说明](docs/screenshots/README.md)。
 
@@ -62,6 +62,7 @@ CI 在 Linux 的 Python 3.9、3.13 和 macOS 的 Python 3.13 上运行 Python �
 - 说明修改解决的问题、用户可见行为和实际执行的验证。
 - 采集、统计或分页逻辑有变化时，补充覆盖对应行为的测试。
 - 界面改动请检查宽屏、390 像素窄屏及深色主题；更新展示图时使用虚构数据。
+- 新增界面文案时，在 `plugin/ui/monitor.html` 的 `messages` 中同时补充中英文，保持占位符一致；MCP 文案位于 `plugin/server.py` 的 `MESSAGES`。截图脚本会调用 `tests/browser_i18n.cjs`，使用自有测试 iframe 验证宿主语言、旧版桥接和切换后状态保留。
 - 保持 `monitor.py`、`plugin/server.py` 和两份插件清单的版本一致；发布版本时更新 `CHANGELOG.md`。
 - 界面发布时更新插件版本，MCP 资源地址随版本变化；检查 `tools/list` 与 `resources/read` 引用同一版本资源，避免客户端继续复用旧页面。
 - 不提交真实会话、数据库、访问令牌、日志或包含个人信息的截图。复现数据应使用最小虚构样本。

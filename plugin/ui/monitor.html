@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -75,97 +75,216 @@ html[data-theme=light]{color-scheme:light;--page:#f6f7fb;--surface:#fff;--ink:#2
   .model-token-details{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 12px}
 }
 
+/* Compact language selection stays beside the measurement notes. */
+.footer{flex-wrap:wrap}.footer-tools{flex-wrap:wrap;gap:10px}.language-control select{font:inherit;font-size:10px;max-width:100px;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:4px 5px;cursor:pointer}.language-control select:focus-visible{outline:2px solid var(--brand);outline-offset:2px}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.method p{margin:0 0 6px}.estimate-title b{font-weight:650}
+@media(max-width:560px){html[lang^=en] .overview-label h2{font-size:12px}html[lang^=en] .periods button{padding:5px 6px}.history-toolbar{gap:6px}.model-kpi-note{overflow-wrap:anywhere}.count,.samples{white-space:normal}}
 </style>
 </head>
 <body><main class="app">
-<header class="top"><div class="identity"><div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4.5 18v-5M9.5 18V8M14.5 18V5M19.5 18v-8"/></svg></div><div class="title"><h1>Codex Token Monitor</h1><p>本机 Codex · 用量与性能</p></div></div><div class="top-actions"><span class="connection" id="connection" role="status"><i></i><span>连接中</span></span><button class="refresh" id="refresh" aria-label="立即刷新" title="立即刷新"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 8a6.5 6.5 0 1 0 .1 4M16 3.8V8h-4.2"/></svg></button></div></header>
-<div class="dashboard"><div class="primary"><section class="surface overview" aria-label="用量概览"><div class="overview-content"><div class="section-heading overview-label"><h2>用量概览</h2><nav class="periods" aria-label="统计范围"><button data-period="today" aria-pressed="true">今日</button><button data-period="7d" aria-pressed="false">最近 7 日</button><button data-period="30d" aria-pressed="false">最近 30 日</button></nav></div><div class="range"><span id="range">正在读取统计…</span><span>北京时间</span></div><div class="hero"><div><div class="eyebrow">Token 总量</div><div class="total"><span id="total">—</span><span class="unit">tokens</span></div><div class="count" id="counts">— 个请求 · — 个会话</div></div><div class="rate"><div class="eyebrow">平均请求 TPS</div><div class="rate-value"><span id="average">—</span><span class="unit">t/s</span></div><div class="samples" id="samples">等待计时样本</div></div></div><div class="metrics" aria-label="用量明细"><div class="metric"><div class="metric-label"><i class="dot"></i>输入</div><strong id="input">—</strong><small id="fresh">新输入 —</small></div><div class="metric"><div class="metric-label"><i class="dot output"></i>输出</div><strong id="output">—</strong><small>包含推理 token</small></div><div class="metric"><div class="metric-label"><i class="dot cached"></i>缓存读取</div><strong id="cached">—</strong><small id="cacheRatio">命中率 —</small></div><div class="metric"><div class="metric-label"><i class="dot reasoning"></i>推理</div><strong id="reasoning">—</strong><small>已含在输出中</small></div></div><div class="estimate"><div><div class="estimate-title">API 参考合计<span>非实际账单</span></div><div class="estimate-note" id="estimateNote">所选范围的本机记录</div></div><strong class="estimate-value" id="estimate">—</strong></div><details class="model-breakdown" id="modelBreakdown"><summary aria-controls="modelDetailsBody"><span class="breakdown-heading">模型使用与费用<span class="model-count" id="modelCount"></span></span><span class="breakdown-action"><span class="when-closed">展开</span><span class="when-open">收起</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></span></summary><div class="model-breakdown-body" id="modelDetailsBody"><div class="breakdown-note">按所选时间范围统计 · 费用为 API 参考估算</div><ul class="list models-list" id="models"></ul></div></details></div></section>
-<section class="surface section" aria-label="用量趋势"><div class="section-heading"><div><h2 id="chartTitle">使用趋势</h2><p>输入与输出构成</p></div><div class="legend"><span><i></i>缓存</span><span><i class="fresh"></i>新输入</span><span><i class="output"></i>输出</span></div></div><div class="chart"><div class="plot" id="plot"></div><div class="axis" id="axis"><span>—</span><span>—</span><span>—</span></div><div class="tooltip" id="tooltip" role="status"></div></div><div class="coverage" id="coverage">仅统计本机保存的记录</div><div class="activity" id="live"><span class="state"><i></i><span id="liveState">等待请求</span></span><span class="value" id="latest">最近实测 —</span></div></section>
-
-</div><section class="surface section requests-card" aria-labelledby="requestsTitle" id="historyCard"><div class="section-heading"><div><h2 id="requestsTitle">调用记录</h2><p>每次模型请求的耗时与速度</p></div><span class="request-count" id="historyCount">正在读取</span></div><div class="history-toolbar"><span>请求计时与输出速度</span><label>每页<select id="pageSize" aria-label="每页记录数"><option value="10">10</option><option value="20">20</option><option value="50">50</option></select>条</label></div><ul class="list" id="requests"></ul><nav class="pager" aria-label="调用记录分页"><span class="pager-label" id="pageInfo">第 1 页</span><div class="pager-actions"><button id="firstPage" disabled>最新</button><button id="prevPage" disabled>上一页</button><button id="nextPage" disabled>下一页</button></div></nav><div class="history-status" id="historyStatus" role="status">正在读取所选范围的请求记录…</div></section></div>
-<footer class="footer"><div class="footer-tools"><button class="method-button" id="methodButton" aria-expanded="false">统计口径 ⓘ</button><span class="build-version">v1.5.2</span></div><span id="updated">本机保存 · 自动刷新</span></footer><div class="method" id="method">今日从北京时间 00:00 开始；最近 7 日、30 日包含今天，按自然日统计。<br>输入已包含缓存，输出已包含推理，不重复相加。平均 TPS = 范围内输出 token 总数 ÷ 对应请求总耗时，包含首字等待和推理，排除请求间的工具耗时。API 参考折算使用标示日期的标准输入、缓存读取和输出价格，部分 OpenAI 模型每次输入超过 272K 时按长上下文价计算；未包含缓存写入、工具费、服务等级差异和价格待确认的模型，不代表实际支出或订阅额度。<br>思考强度来自本机会话记录；无法可靠匹配时显示“未记录”。无记录日期仅表示本机没有可用记录，用量不代表账单或订阅剩余额度。</div>
+<header class="top">
+  <div class="identity"><div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4.5 18v-5M9.5 18V8M14.5 18V5M19.5 18v-8"/></svg></div><div class="title"><h1>Codex Token Monitor</h1><p data-i18n="subtitle">Local Codex · Usage &amp; performance</p></div></div>
+  <div class="top-actions"><span class="connection" id="connection" role="status"><i></i><span>Connecting</span></span><button class="refresh" id="refresh" data-i18n-label="refresh" data-i18n-title="refresh" aria-label="Refresh now" title="Refresh now"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 8a6.5 6.5 0 1 0 .1 4M16 3.8V8h-4.2"/></svg></button></div>
+</header>
+<div class="dashboard"><div class="primary">
+<section class="surface overview" data-i18n-label="overview" aria-label="Usage overview"><div class="overview-content">
+  <div class="section-heading overview-label"><h2 data-i18n="overview">Usage overview</h2><nav class="periods" data-i18n-label="period" aria-label="Time range"><button data-period="today" aria-pressed="true" data-i18n="today">Today</button><button data-period="7d" aria-pressed="false" data-i18n="week">7 days</button><button data-period="30d" aria-pressed="false" data-i18n="month">30 days</button></nav></div>
+  <div class="range"><span id="range">Loading statistics…</span><span data-i18n="timezone">Beijing · UTC+8</span></div>
+  <div class="hero"><div><div class="eyebrow" data-i18n="totalTokens">Total tokens</div><div class="total"><span id="total">—</span><span class="unit">tokens</span></div><div class="count" id="counts">—</div></div><div class="rate"><div class="eyebrow" data-i18n="averageRequestTps">Average request TPS</div><div class="rate-value"><span id="average">—</span><span class="unit">t/s</span></div><div class="samples" id="samples">Waiting for timing samples</div></div></div>
+  <div class="metrics" data-i18n-label="usageDetails" aria-label="Usage details">
+    <div class="metric"><div class="metric-label"><i class="dot"></i><span data-i18n="input">Input</span></div><strong id="input">—</strong><small id="fresh">New input —</small></div>
+    <div class="metric"><div class="metric-label"><i class="dot output"></i><span data-i18n="output">Output</span></div><strong id="output">—</strong><small data-i18n="includesReasoning">Includes reasoning tokens</small></div>
+    <div class="metric"><div class="metric-label"><i class="dot cached"></i><span data-i18n="cached">Cached input</span></div><strong id="cached">—</strong><small id="cacheRatio">Hit rate —</small></div>
+    <div class="metric"><div class="metric-label"><i class="dot reasoning"></i><span data-i18n="reasoning">Reasoning</span></div><strong id="reasoning">—</strong><small data-i18n="includedInOutput">Included in output</small></div>
+  </div>
+  <div class="estimate"><div><div class="estimate-title"><b data-i18n="apiTotal">Estimated API total</b><span data-i18n="notInvoice">Not an invoice</span></div><div class="estimate-note" id="estimateNote">Local records in this range</div></div><strong class="estimate-value" id="estimate">—</strong></div>
+  <details class="model-breakdown" id="modelBreakdown"><summary aria-controls="modelDetailsBody"><span class="breakdown-heading"><span data-i18n="modelUsage">Model usage &amp; cost</span><span class="model-count" id="modelCount"></span></span><span class="breakdown-action"><span class="when-closed" data-i18n="expand">Expand</span><span class="when-open" data-i18n="collapse">Collapse</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></span></summary><div class="model-breakdown-body" id="modelDetailsBody"><div class="breakdown-note" data-i18n="modelNote">Selected time range · Estimated at API prices</div><ul class="list models-list" id="models"></ul></div></details>
+</div></section>
+<section class="surface section" data-i18n-label="usageTrend" aria-label="Usage trend"><div class="section-heading"><div><h2 id="chartTitle">Usage trend</h2><p data-i18n="composition">Input and output composition</p></div><div class="legend"><span><i></i><span data-i18n="cache">Cache</span></span><span><i class="fresh"></i><span data-i18n="newInput">New input</span></span><span><i class="output"></i><span data-i18n="output">Output</span></span></div></div><div class="chart"><div class="plot" id="plot"></div><div class="axis" id="axis"><span>—</span><span>—</span><span>—</span></div><div class="tooltip" id="tooltip" role="status"></div></div><div class="coverage" id="coverage">Only locally saved records are counted</div><div class="activity" id="live"><span class="state"><i></i><span id="liveState">Waiting for requests</span></span><span class="value" id="latest">Latest measured —</span></div></section>
+</div>
+<section class="surface section requests-card" aria-labelledby="requestsTitle" id="historyCard"><div class="section-heading"><div><h2 id="requestsTitle" data-i18n="requestHistory">Request history</h2><p data-i18n="historySubtitle">Duration and speed of each model request</p></div><span class="request-count" id="historyCount">Loading</span></div><div class="history-toolbar"><span data-i18n="historyToolbar">Request timing &amp; output speed</span><label><span data-i18n="perPage">Per page</span><select id="pageSize" data-i18n-label="pageSize" aria-label="Records per page"><option value="10">10</option><option value="20">20</option><option value="50">50</option></select><span data-i18n="recordsSuffix"></span></label></div><ul class="list" id="requests"></ul><nav class="pager" data-i18n-label="pagination" aria-label="Request history pages"><span class="pager-label" id="pageInfo">Page 1</span><div class="pager-actions"><button id="firstPage" disabled data-i18n="latestPage">Latest</button><button id="prevPage" disabled data-i18n="previousPage">Previous</button><button id="nextPage" disabled data-i18n="nextPage">Next</button></div></nav><div class="history-status" id="historyStatus" role="status">Loading requests in this range…</div></section>
+</div>
+<footer class="footer"><div class="footer-tools"><button class="method-button" id="methodButton" aria-expanded="false" data-i18n="methodButton">How it’s measured ⓘ</button><label class="language-control"><span class="sr-only" data-i18n="languageLabel">Interface language</span><select id="language" data-i18n-label="languageLabel" aria-label="Interface language"><option value="auto" data-i18n="languageAuto">Auto</option><option value="zh">中文</option><option value="en">English</option></select></label><span class="build-version">v1.6.0</span></div><span id="updated">Saved locally · Auto-refresh</span></footer>
+<div class="method" id="method"><p data-i18n="methodRange"></p><p data-i18n="methodMetrics"></p><p data-i18n="methodSource"></p></div>
 </main><script>
 'use strict';
-const $=id=>document.getElementById(id), numberFormat=new Intl.NumberFormat('zh-CN');
-const timeFormat=new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
-const dayFormat=new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',month:'numeric',day:'numeric'});
-const full=n=>numberFormat.format(Number(n||0));
-const compact=n=>n>=1e6?(n/1e6).toFixed(2)+'M':n>=1e4?(n/1e3).toFixed(1)+'K':full(n);
-const clock=s=>timeFormat.format(new Date(s*1000)),day=s=>dayFormat.format(new Date(s*1000));
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const embedded=window.parent!==window, pending=new Map(), periodButtons=[...document.querySelectorAll('[data-period]')];
+const $=id=>document.getElementById(id);
+// Keep both translations beside each other; the UI is served as one self-contained resource.
+const messages={
+  subtitle:['本机 Codex · 用量与性能','Local Codex · Usage & performance'],
+  refresh:['立即刷新','Refresh now'],overview:['用量概览','Usage overview'],period:['统计范围','Time range'],
+  today:['今日','Today'],week:['7日','7 days'],month:['30日','30 days'],timezone:['北京时间','Beijing · UTC+8'],
+  loadingStats:['正在读取统计…','Loading statistics…'],countsPlaceholder:['— 个请求 · — 个会话','— requests · — sessions'],totalTokens:['Token 总量','Total tokens'],
+  averageRequestTps:['平均请求 TPS','Average request TPS'],waitingSamples:['等待计时样本','Waiting for timing samples'],
+  usageDetails:['用量明细','Usage details'],input:['输入','Input'],output:['输出','Output'],cached:['缓存读取','Cached input'],
+  reasoning:['推理','Reasoning'],includesReasoning:['包含推理 token','Includes reasoning tokens'],includedInOutput:['已含在输出中','Included in output'],
+  newInput:['新输入','New input'],cache:['缓存','Cache'],hitRate:['命中率 {value}','Hit rate {value}'],
+  apiTotal:['API 参考合计','Estimated API total'],notInvoice:['非实际账单','Not an invoice'],localRange:['所选范围的本机记录','Local records in this range'],
+  modelUsage:['模型使用与费用','Model usage & cost'],expand:['展开','Expand'],collapse:['收起','Collapse'],
+  modelNote:['按所选时间范围统计 · 费用为 API 参考估算','Selected time range · Estimated at API prices'],
+  usageTrend:['用量趋势','Usage trend'],composition:['输入与输出构成','Input and output composition'],
+  localOnly:['仅统计本机保存的记录','Only locally saved records are counted'],waitingRequests:['等待请求','Waiting for requests'],
+  latestMeasured:['最近实测 {value}','Latest measured {value}'],requestHistory:['调用记录','Request history'],
+  historySubtitle:['每次模型请求的耗时与速度','Duration and speed of each model request'],loading:['正在读取','Loading'],
+  historyToolbar:['请求计时与输出速度','Request timing & output speed'],perPage:['每页','Per page'],recordsSuffix:['条',''],
+  pageSize:['每页记录数','Records per page'],pagination:['调用记录分页','Request history pages'],page:['第 {n} 页','Page {n}'],
+  latestPage:['最新','Latest'],previousPage:['上一页','Previous'],nextPage:['下一页','Next'],
+  loadingRange:['正在读取所选范围的请求记录…','Loading requests in this range…'],methodButton:['统计口径 ⓘ','How it’s measured ⓘ'],
+  languageLabel:['界面语言','Interface language'],languageAuto:['跟随环境','Auto'],savedAuto:['本机保存 · 自动刷新','Saved locally · Auto-refresh'],
+  methodRange:['今日从北京时间 00:00 开始；最近 7 日、30 日包含今天，按自然日统计。','Today starts at 00:00 Beijing time (UTC+8). The 7-day and 30-day ranges include today and use calendar days.'],
+  methodMetrics:['输入已包含缓存，输出已包含推理，不重复相加。平均 TPS = 范围内完整计时请求的总输出 token ÷ 对应总耗时，包含首字等待和推理，排除请求间的工具耗时。API 参考折算使用标示日期的标准输入、缓存读取和输出价格，部分 OpenAI 模型每次输入超过 272K 时按长上下文价计算；未包含缓存写入、工具费、服务等级差异和价格待确认的模型，不代表实际支出或订阅额度。','Cached tokens are included in input; reasoning tokens are included in output. Average TPS = total output tokens of fully timed requests ÷ their total duration, including initial wait and reasoning, excluding tools between requests. API estimates use the dated standard input, cached-input and output prices. Some OpenAI models use long-context rates above 272K input tokens per request. Cache writes, tool fees, service-tier differences and unpriced models are excluded. Estimates are not actual spending or subscription allowances.'],
+  methodSource:['思考强度来自本机会话记录；无法可靠匹配时显示“未记录”。无记录日期仅表示本机没有可用记录，用量不代表账单或订阅剩余额度。','Reasoning effort comes from matched local session records; unmatched requests show “Not recorded”. A day without records means no local data is available. Usage is not an invoice or a remaining subscription allowance.'],
+  connecting:['连接中','Connecting'],synced:['已同步','Synced'],disconnected:['连接中断','Disconnected'],
+  pluginTimeout:['插件连接超时','Plugin connection timed out'],pluginReadFailed:['插件读取失败','Unable to read plugin data'],
+  priceUnknown:['价格待确认','Price unavailable'],shareRange:['所选范围内的用量','Usage in this range'],share:['占总量 {value}','{value} of total'],
+  pricingDetails:['计价说明','Pricing details'],unitPrices:['标准单价 / 百万 tokens','Standard price / 1M tokens'],
+  longRequests:['{n} 次长上下文请求','{n} long-context requests'],longRequestsOne:['{n} 次长上下文请求','{n} long-context request'],
+  priceExcluded:['暂无可核实公开单价，未计入参考合计。','No verified public price; excluded from the estimated total.'],
+  unknownModel:['未知模型','Unknown model'],requests:['{n} 个请求','{n} requests'],requestsOne:['{n} 个请求','{n} request'],
+  sessions:['{n} 个会话','{n} sessions'],sessionsOne:['{n} 个会话','{n} session'],
+  apiCost:['API 参考费用','Est. API cost'],estimateOnly:['参考估算，非实际账单','Estimate, not an invoice'],
+  usdEstimate:['USD · 标准价格估算','USD · Standard-price estimate'],averageTps:['平均 TPS','Average TPS'],
+  modelTpsTitle:['该模型完整请求的总输出 ÷ 总耗时','Total output ÷ total duration of fully timed requests for this model'],
+  samples:['{n} 条完整计时','{n} complete timings'],samplesOne:['{n} 条完整计时','{n} complete timing'],
+  noTiming:['暂无完整计时','No complete timings'],tokenComposition:['Token 构成','Token composition'],
+  includesCache:['包含缓存读取','Includes cached input'],includedInInput:['已包含在输入中','Included in input'],
+  notRecorded:['未记录','Not recorded'],incompleteTiming:['计时不完整','Incomplete timing'],seconds:['{value} 秒','{value} s'],
+  effortTitle:['来自匹配的本机会话记录','From a matched local session record'],
+  requestMeta:['{day} {time} · 输出 {output} · {duration}','{day} {time} · Output {output} · {duration}'],
+  waitingStats:['等待本机统计更新','Waiting for local statistics'],standardPrices:['{date} 标准 API 价格','Standard API prices as of {date}'],
+  unpricedExcluded:[' · {n} 条价格待确认，未计入',' · {n} unpriced requests excluded'],unpricedExcludedOne:[' · {n} 条价格待确认，未计入',' · {n} unpriced request excluded'],
+  updating:['统计服务正在更新，请稍后刷新','Statistics are updating; please refresh shortly'],
+  todayRange:['{date} · 00:00 至今','{date} · 00:00 to now'],newInputValue:['新输入 {value}','New input {value}'],
+  hourlyUsage:['按小时使用量','Hourly usage'],dailyUsage:['每日使用量','Daily usage'],
+  coverage:['本机记录始于 {date} · 此范围内 {n} 天有记录','Local records since {date} · {n} recorded days in this range'],
+  coverageOne:['本机记录始于 {date} · 此范围内 {n} 天有记录','Local records since {date} · {n} recorded day in this range'],
+  noLocalSessions:['暂无本机会话记录','No local session records'],scanError:['扫描暂时异常','Session scan temporarily unavailable'],
+  activeRequest:['请求进行中 · {value} 秒','Request in progress · {value} s'],waitingNew:['等待新请求','Waiting for a new request'],
+  firstTiming:['等待首次完整计时','Waiting for the first complete timing'],afterCompletion:['请求完成后更新','Updated after completion'],
+  models:['{n} 个模型','{n} models'],modelsOne:['{n} 个模型','{n} model'],noModels:['所选范围暂无模型记录。','No model records in this range.'],
+  updated:['{time} 更新 · 本机保存','Updated {time} · Saved locally'],unavailable:['暂时无法连接','Temporarily unavailable'],
+  localFailed:['本地服务连接失败','Unable to connect to the local service'],localTimeout:['本地服务响应超时，稍后自动重试','Local service timed out; retrying automatically'],
+  localUnavailable:['本地服务不可用','Local service unavailable'],openFromPlugin:['请从 Codex Token Monitor 插件打开面板','Open the panel from the Codex Token Monitor plugin'],
+  noLocalRecord:['无本地记录','No local records'],tooltipTotal:['总量 {n} tokens','Total {n} tokens'],
+  tooltipParts:['缓存 {cached} · 输出 {output}','Cache {cached} · Output {output}'],
+  loadingRequests:['正在读取请求记录…','Loading requests…'],loadingRecords:['正在读取记录…','Loading records…'],
+  historyUnavailable:['请求记录暂时不可用','Request history temporarily unavailable'],updateCollector:['请将本地采集服务更新至最新版本','Update the local collector to the latest version'],
+  noHistory:['所选范围暂无请求计时记录。','No request timings in this range.'],records:['{n} 条记录','{n} records'],recordsOne:['{n} 条记录','{n} record'],
+  historyLatest:['最新页自动更新 · 可翻页查看所选范围内的全部计时记录','Latest page updates automatically · Browse all timings in this range'],
+  historyBrowsing:['正在浏览历史页 · 自动刷新不会打断翻页','Browsing history · Auto-refresh keeps your current page'],
+  historyFailed:['暂时无法读取，请稍后刷新','Unable to load history; please refresh shortly']
+};
+const embedded=window.parent!==window,pending=new Map(),periodButtons=[...document.querySelectorAll('[data-period]')];
 let selected=['today','7d','30d'].includes(window.openai?.widgetState?.period)?window.openai.widgetState.period:'today';
-let historyData=null,historyPage=0,historyCursors=[null],historyBusy=false,historySeq=0,pageSize=10;
-let last=null,busy=false,ready=null,serial=0,timer=null,failures=0,chartPeriod='',chartPoints=[],lastHeight=0,resizeFrame=0;
+let historyData=null,historyPage=0,historyCursors=[null],historyBusy=false,historySeq=0,pageSize=10,historyError=null;
+let last=null,busy=false,ready=null,serial=0,timer=null,failures=0,chartPeriod='',chartPoints=[],lastHeight=0,resizeFrame=0,lastError=null;
+let language='en',locale='en-US',numberFormat,timeFormat,dayFormat,decimalFormats=new Map();
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function t(key,params={}){return messages[key][language==='zh'?0:1].replace(/\{(\w+)\}/g,(_,name)=>String(params[name]??''))}
+function count(key,n,params={}){return t(n===1&&messages[key+'One']?key+'One':key,{...params,n:full(n)})}
+function validLocale(value){if(typeof value!=='string'||value.length>100)return '';try{return Intl.getCanonicalLocales(value.trim().replace(/_/g,'-'))[0]||''}catch{return ''}}
+let hostLocale=validLocale(window.openai?.locale)||validLocale(document.documentElement.lang),toolLocale='';
+const preferenceKey='codex-token-monitor.language.'+(embedded?'embedded':'browser');
+function readPreference(){let value;try{value=window.openai?.widgetState?.language||window.localStorage?.getItem(preferenceKey)}catch{}return ['zh','en'].includes(value)?value:'auto'}
+let languagePreference=readPreference(),localeObserver=null;
+function resolvedLocale(){const value=languagePreference==='auto'?(hostLocale||toolLocale||validLocale(navigator.language)||'en-US'):(languagePreference==='zh'?'zh-CN':'en-US');return /^zh(?:-|$)/i.test(value)?'zh-CN':/^en(?:-|$)/i.test(value)?value:'en-US'}
+const full=n=>numberFormat.format(Number(n||0));
+const compact=n=>n>=1e6?decimal(n/1e6,2)+'M':n>=1e4?decimal(n/1e3,1)+'K':full(n);
+function decimal(n,digits){if(!decimalFormats.has(digits))decimalFormats.set(digits,new Intl.NumberFormat(locale,{minimumFractionDigits:digits,maximumFractionDigits:digits}));return decimalFormats.get(digits).format(n)}
+const clock=s=>timeFormat.format(new Date(s*1000)),day=s=>dayFormat.format(new Date(s*1000));
+function uiError(key){const error=Error(t(key));error.i18nKey=key;return error}
+const errorText=(error,fallback)=>error?.i18nKey?t(error.i18nKey):error?.message||t(fallback);
+function observeLocale(){localeObserver?.observe(document.documentElement,{attributes:true,attributeFilter:['lang']})}
+function localize(){
+  const next=resolvedLocale();
+  const changed=locale!==next||!numberFormat;
+  locale=next;language=/^zh/i.test(locale)?'zh':'en';
+  if(changed){numberFormat=new Intl.NumberFormat(locale);decimalFormats.clear();timeFormat=new Intl.DateTimeFormat(locale,{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'});dayFormat=new Intl.DateTimeFormat(locale,{timeZone:'Asia/Shanghai',month:'numeric',day:'numeric'})}
+  // Disconnect for our own writes so they cannot masquerade as host language changes.
+  if(document.documentElement.lang!==locale){localeObserver?.disconnect();document.documentElement.lang=locale;observeLocale()}
+  for(const el of document.querySelectorAll('[data-i18n]'))el.textContent=t(el.dataset.i18n);
+  for(const [selector,attribute,key] of [['[data-i18n-label]','aria-label','i18nLabel'],['[data-i18n-title]','title','i18nTitle']])for(const el of document.querySelectorAll(selector))el.setAttribute(attribute,t(el.dataset[key]));
+  $('language').value=languagePreference;
+  if(!changed)return;
+  $('tooltip').classList.remove('visible');
+  if(last){const error=lastError;render(last);if(error)showError(error)}else{
+    $('connection').querySelector('span').textContent=t(lastError?'disconnected':'connecting');
+    setText('range',t('loadingStats'));setText('counts',t('countsPlaceholder'));
+    setText('samples',t('waitingSamples'));setText('fresh',t('newInputValue',{value:'—'}));setText('cacheRatio',t('hitRate',{value:'—'}));
+    setText('estimateNote',t('localRange'));setText('chartTitle',t('usageTrend'));setText('coverage',t('localOnly'));
+    setText('liveState',lastError?errorText(lastError,'unavailable'):t('waitingRequests'));setText('latest',t('latestMeasured',{value:'—'}));setText('updated',t('savedAuto'));
+  }
+  renderHistory();
+}
+function setLanguage(value){languagePreference=['zh','en'].includes(value)?value:'auto';try{window.localStorage?.setItem(preferenceKey,languagePreference)}catch{}saveWidgetState();localize()}
+function saveWidgetState(){try{window.openai?.setWidgetState?.({...window.openai.widgetState,period:selected,language:languagePreference})}catch{}}
+function applyHostContext(context){if(context?.theme==='light'||context?.theme==='dark')document.documentElement.dataset.theme=context.theme;const value=validLocale(context?.locale);if(value&&hostLocale!==value){hostLocale=value;localize()}}
+function readToolResult(result){const hint=validLocale(result?._meta?.['token-monitor/locale']);if(hint&&toolLocale!==hint){toolLocale=hint;localize()}return result}
 function notify(method,params){window.parent.postMessage({jsonrpc:'2.0',method,params},'*')}
-function rpc(method,params){return new Promise((resolve,reject)=>{const id=++serial,timeout=setTimeout(()=>{pending.delete(id);reject(Error('插件连接超时'))},7000);pending.set(id,{resolve,reject,timeout});window.parent.postMessage({jsonrpc:'2.0',id,method,params},'*')})}
-function theme(context){if(context?.theme==='light'||context?.theme==='dark')document.documentElement.dataset.theme=context.theme}
-window.addEventListener('message',event=>{if(event.source!==window.parent)return;const msg=event.data;if(!msg||msg.jsonrpc!=='2.0')return;if(msg.id!==undefined&&pending.has(msg.id)){const p=pending.get(msg.id);pending.delete(msg.id);clearTimeout(p.timeout);msg.error?p.reject(Error(msg.error.message||'插件读取失败')):p.resolve(msg.result);return}if(msg.method==='ui/notifications/tool-result'&&msg.params?.structuredContent){try{render(msg.params.structuredContent)}catch(e){showError(e)}}if(msg.method==='ui/notifications/host-context-changed')theme(msg.params)});
-async function connect(){if(!embedded)return null;try{const result=await rpc('ui/initialize',{appInfo:{name:'token-monitor',version:'1.5.2'},appCapabilities:{},protocolVersion:'2026-01-26'});theme(result?.hostContext);notify('ui/notifications/initialized',{});return 'mcp'}catch(e){if(window.openai?.callTool)return 'legacy';throw e}}
+function rpc(method,params){return new Promise((resolve,reject)=>{const id=++serial,timeout=setTimeout(()=>{pending.delete(id);reject(uiError('pluginTimeout'))},7000);pending.set(id,{resolve,reject,timeout});window.parent.postMessage({jsonrpc:'2.0',id,method,params},'*')})}
+window.addEventListener('message',event=>{if(event.source!==window.parent)return;const msg=event.data;if(!msg||msg.jsonrpc!=='2.0')return;if(msg.id!==undefined&&pending.has(msg.id)){const p=pending.get(msg.id);pending.delete(msg.id);clearTimeout(p.timeout);msg.error?p.reject(uiError('pluginReadFailed')):p.resolve(msg.result);return}if(msg.method==='ui/notifications/tool-result'&&msg.params?.structuredContent){try{readToolResult(msg.params);render(msg.params.structuredContent)}catch(e){showError(e)}}if(msg.method==='ui/notifications/host-context-changed')applyHostContext(msg.params)});
+window.addEventListener('openai:set_globals',event=>applyHostContext(event.detail?.globals));
+window.addEventListener('languagechange',()=>{if(languagePreference==='auto'&&!hostLocale&&!toolLocale)localize()});
+async function connect(){if(!embedded)return null;try{const result=await rpc('ui/initialize',{appInfo:{name:'token-monitor',version:'1.6.0'},appCapabilities:{},protocolVersion:'2026-01-26'});applyHostContext(result?.hostContext);notify('ui/notifications/initialized',{});return 'mcp'}catch(e){if(window.openai?.callTool){applyHostContext(window.openai);return 'legacy'}throw e}}
+async function callTool(name,args){try{ready=ready||connect();const mode=await ready;return readToolResult(mode==='legacy'?await window.openai.callTool(name,args):await rpc('tools/call',{name,arguments:args}))}catch(e){throw e?.i18nKey?e:uiError('pluginReadFailed')}}
 function setText(id,value){const el=$(id),text=String(value);if(el.textContent!==text)el.textContent=text}
 function setNumber(id,n){setText(id,compact(n));const title=full(n);if($(id).title!==title)$(id).title=title}
 function selectPeriod(){for(const b of periodButtons){const pressed=String(b.dataset.period===selected);if(b.getAttribute('aria-pressed')!==pressed)b.setAttribute('aria-pressed',pressed)}}
 function drawChart(p){const points=p.timeline||[],plot=$('plot'),max=Math.max(1,...points.map(x=>x.total));chartPoints=points;
 if(chartPeriod!==selected||plot.children.length!==points.length){chartPeriod=selected;plot.innerHTML=points.map((x,i)=>`<button class="slot" data-index="${i}" type="button"><span class="bar"><i></i><i class="fresh"></i><i class="output"></i></span></button>`).join('');$('tooltip').classList.remove('visible')}
-for(let i=0;i<points.length;i++){const x=points[i],button=plot.children[i],bar=button.firstElementChild,height=x.total?Math.max(2,(plot.clientHeight-8)*x.total/max):0;button.classList.toggle('empty',!x.requests);const label=(selected==='today'?x.label:day(x.ts))+' '+(x.requests?full(x.total)+' token':'无本地记录');if(button.getAttribute('aria-label')!==label)button.setAttribute('aria-label',label);const h=height+'px';if(bar.style.height!==h)bar.style.height=h;const portions=x.total?[x.cached/x.total,x.fresh/x.total,x.output/x.total]:[0,0,0];for(let j=0;j<3;j++){const part=100*portions[j]+'%';if(bar.children[j].style.height!==part)bar.children[j].style.height=part}}
+for(let i=0;i<points.length;i++){const x=points[i],button=plot.children[i],bar=button.firstElementChild,height=x.total?Math.max(2,(plot.clientHeight-8)*x.total/max):0;button.classList.toggle('empty',!x.requests);const label=(selected==='today'?x.label:day(x.ts))+' '+(x.requests?full(x.total)+' tokens':t('noLocalRecord'));if(button.getAttribute('aria-label')!==label)button.setAttribute('aria-label',label);const h=height+'px';if(bar.style.height!==h)bar.style.height=h;const portions=x.total?[x.cached/x.total,x.fresh/x.total,x.output/x.total]:[0,0,0];for(let j=0;j<3;j++){const part=100*portions[j]+'%';if(bar.children[j].style.height!==part)bar.children[j].style.height=part}}
 const label=x=>selected==='today'?x?.label??'—':x?day(x.ts):'—',axis=[points[0],points[Math.floor((points.length-1)/2)],points[points.length-1]].map(label);for(let i=0;i<3;i++)if($('axis').children[i].textContent!==axis[i])$('axis').children[i].textContent=axis[i]}
-function showTip(button){const x=chartPoints[Number(button.dataset.index)];if(!x)return;const tip=$('tooltip');tip.innerHTML='<strong>'+esc(selected==='today'?x.label:day(x.ts))+'</strong><br>'+(x.requests?`总量 ${full(x.total)} token<br>缓存 ${full(x.cached)} · 输出 ${full(x.output)}`:'无本地记录');const center=button.offsetLeft+button.offsetWidth/2;tip.style.left=Math.max(0,Math.min($('plot').clientWidth-155,center-75))+'px';tip.classList.add('visible')}
+function showTip(button){const x=chartPoints[Number(button.dataset.index)];if(!x)return;const tip=$('tooltip');tip.innerHTML='<strong>'+esc(selected==='today'?x.label:day(x.ts))+'</strong><br>'+(x.requests?esc(t('tooltipTotal',{n:full(x.total)}))+'<br>'+esc(t('tooltipParts',{cached:full(x.cached),output:full(x.output)})):t('noLocalRecord'));const center=button.offsetLeft+button.offsetWidth/2;tip.style.left=Math.max(0,Math.min($('plot').clientWidth-155,center-75))+'px';tip.classList.add('visible')}
 $('plot').addEventListener('pointerover',e=>{const b=e.target.closest('.slot');if(b)showTip(b)});$('plot').addEventListener('pointerout',e=>{if(e.target.closest('.slot')&&!e.relatedTarget?.closest?.('.slot'))$('tooltip').classList.remove('visible')});$('plot').addEventListener('focusin',e=>{const b=e.target.closest('.slot');if(b)showTip(b)});$('plot').addEventListener('focusout',()=> $('tooltip').classList.remove('visible'));
-function reconcile(id,items,keyOf,markup,empty){const list=$(id),old=new Map([...list.children].map(node=>[node.dataset.key,node])),desired=items.length?items:[null],keys=new Set();for(let i=0;i<desired.length;i++){const item=desired[i],key=item?String(keyOf(item)):'__empty__',signature=item?JSON.stringify(item):empty;let node=old.get(key);if(!node){node=document.createElement('li');node.dataset.key=key}if(node.dataset.signature!==signature){node.className=item?(id==='models'?'modelrow':'requestrow'):'emptytext';const pricingOpen=id==='models'&&node.querySelector('.model-pricing')?.open;node.innerHTML=item?markup(item):esc(empty);if(pricingOpen){const pricing=node.querySelector('.model-pricing');if(pricing)pricing.open=true}node.dataset.signature=signature}keys.add(key);if(list.children[i]!==node)list.insertBefore(node,list.children[i]||null)}for(const node of [...list.children])if(!keys.has(node.dataset.key))node.remove()}
-function dollar(n,detail=false){if(n==null)return '价格待确认';if(n>0&&n<.0001)return '<$0.0001';if(detail||n>0&&n<.01)return '$'+n.toFixed(4);return '$'+n.toFixed(2)}
+function reconcile(id,items,keyOf,markup,empty){const list=$(id),old=new Map([...list.children].map(node=>[node.dataset.key,node])),desired=items.length?items:[null],keys=new Set();for(let i=0;i<desired.length;i++){const item=desired[i],key=item?String(keyOf(item)):'__empty__',signature=locale+(item?JSON.stringify(item):empty);let node=old.get(key);if(!node){node=document.createElement('li');node.dataset.key=key}if(node.dataset.signature!==signature){node.className=item?(id==='models'?'modelrow':'requestrow'):'emptytext';const pricingOpen=id==='models'&&node.querySelector('.model-pricing')?.open;node.innerHTML=item?markup(item):esc(empty);if(pricingOpen){const pricing=node.querySelector('.model-pricing');if(pricing)pricing.open=true}node.dataset.signature=signature}keys.add(key);if(list.children[i]!==node)list.insertBefore(node,list.children[i]||null)}for(const node of [...list.children])if(!keys.has(node.dataset.key))node.remove()}
+function dollar(n,detail=false){if(n==null)return t('priceUnknown');if(n>0&&n<.0001)return '<$0.0001';return '$'+decimal(n,detail||n>0&&n<.01?4:2)}
 function modelMarkup(m){
   const estimate=m.api_estimate,speed=m.speed_summary;
   const priced=estimate?.dollars!=null,measured=speed?.tps!=null;
   const share=Number.isFinite(m.token_share)?Math.max(0,Math.min(1,m.token_share)):null;
-  const shareNote=share==null?'所选范围内的用量':`<span class="model-share-track" aria-hidden="true"><i style="width:${(share*100).toFixed(2)}%"></i></span>占总量 ${(share*100).toFixed(1)}%`;
-  const tokenDetail=(label,value,note='')=>`<div${note?` title="${esc(note)}"`:''}><dt>${label}</dt><dd title="${full(value)} tokens">${compact(value)}</dd></div>`;
-  const rates=priced?`<details class="model-pricing"><summary>计价说明</summary><div class="model-pricing-content"><span>标准单价 / 百万 tokens</span><span>输入 $${esc(estimate.input_per_million)}</span><span>缓存 $${esc(estimate.cached_per_million)}</span><span>输出 $${esc(estimate.output_per_million)}</span>${estimate.long_context_requests?`<span>${full(estimate.long_context_requests)} 次长上下文请求</span>`:''}</div></details>`:'<p class="model-price-warning">暂无可核实公开单价，未计入参考合计。</p>';
-  return `<div class="model-heading"><div class="model-identity"><h3 class="model-name">${esc(m.model||'未知模型')}</h3>${estimate?.provider?`<span class="model-provider">${esc(estimate.provider)}</span>`:''}</div><span class="model-requests">${full(m.requests)} 个请求</span></div>
+  const shareNote=share==null?t('shareRange'):`<span class="model-share-track" aria-hidden="true"><i style="width:${(share*100).toFixed(2)}%"></i></span>${t('share',{value:decimal(share*100,1)+'%'})}`;
+  const tokenDetail=(label,value,note)=>`<div title="${esc(t(note))}"><dt>${t(label)}</dt><dd title="${full(value)} tokens">${compact(value)}</dd></div>`;
+  const rates=priced?`<details class="model-pricing"><summary>${t('pricingDetails')}</summary><div class="model-pricing-content"><span>${t('unitPrices')}</span><span>${t('input')} $${esc(estimate.input_per_million)}</span><span>${t('cache')} $${esc(estimate.cached_per_million)}</span><span>${t('output')} $${esc(estimate.output_per_million)}</span>${estimate.long_context_requests?`<span>${count('longRequests',estimate.long_context_requests)}</span>`:''}</div></details>`:`<p class="model-price-warning">${t('priceExcluded')}</p>`;
+  return `<div class="model-heading"><div class="model-identity"><h3 class="model-name">${esc(m.model||t('unknownModel'))}</h3>${estimate?.provider?`<span class="model-provider">${esc(estimate.provider)}</span>`:''}</div><span class="model-requests">${count('requests',m.requests)}</span></div>
     <dl class="model-kpis">
-      <div class="model-kpi model-tokens"><dt>Token 总量</dt><dd title="${full(m.total)} tokens">${compact(m.total)}</dd><dd class="model-kpi-note">${shareNote}</dd></div>
-      <div class="model-kpi model-cost"><dt>API 参考费用</dt><dd${priced?` title="${esc(dollar(estimate.dollars,true))} · 参考估算，非实际账单"`:' class="unavailable"'}>${priced?esc(dollar(estimate.dollars)):'—'}</dd><dd class="model-kpi-note">${priced?'USD · 标准价格估算':'价格待确认'}</dd></div>
-      <div class="model-kpi model-speed"><dt>平均 TPS</dt><dd${measured?'':' class="unavailable"'} title="该模型完整请求的总输出 ÷ 总耗时">${measured?speed.tps.toFixed(1)+'<small>t/s</small>':'—'}</dd><dd class="model-kpi-note">${measured?full(speed.samples)+' 条完整计时':'暂无完整计时'}</dd></div>
+      <div class="model-kpi model-tokens"><dt>${t('totalTokens')}</dt><dd title="${full(m.total)} tokens">${compact(m.total)}</dd><dd class="model-kpi-note">${shareNote}</dd></div>
+      <div class="model-kpi model-cost"><dt>${t('apiCost')}</dt><dd${priced?` title="${esc(dollar(estimate.dollars,true))} · ${t('estimateOnly')}"`:' class="unavailable"'}>${priced?esc(dollar(estimate.dollars)):'—'}</dd><dd class="model-kpi-note">${priced?t('usdEstimate'):t('priceUnknown')}</dd></div>
+      <div class="model-kpi model-speed"><dt>${t('averageTps')}</dt><dd${measured?'':' class="unavailable"'} title="${t('modelTpsTitle')}">${measured?decimal(speed.tps,1)+'<small>t/s</small>':'—'}</dd><dd class="model-kpi-note">${measured?count('samples',speed.samples):t('noTiming')}</dd></div>
     </dl>
-    <dl class="model-token-details" aria-label="Token 构成">${tokenDetail('输入',m.input,'包含缓存读取')}${tokenDetail('输出',m.output,'包含推理 Token')}${tokenDetail('缓存读取',m.cached,'已包含在输入中')}${tokenDetail('推理',m.reasoning,'已包含在输出中')}</dl>${rates}`;
+    <dl class="model-token-details" aria-label="${t('tokenComposition')}">${tokenDetail('input',m.input,'includesCache')}${tokenDetail('output',m.output,'includesReasoning')}${tokenDetail('cached',m.cached,'includedInInput')}${tokenDetail('reasoning',m.reasoning,'includedInOutput')}</dl>${rates}`;
 }
-function requestMarkup(r){const effort=r.effort?esc(r.effort.toUpperCase()):'未记录',duration=r.duration_ms==null?'计时不完整':(r.duration_ms/1000).toFixed(2)+' 秒';return `<div class="request-main"><div class="request-top"><span class="request-name">${esc(r.model||'未知模型')}</span><span class="effort ${r.effort?'':'unknown'}" title="来自匹配的本机会话记录">${effort}</span></div><div class="request-meta">${day(r.ts)} ${clock(r.ts)} · 输出 ${full(r.output)} · ${duration}</div></div><div class="request-value">${r.tps==null?'—':r.tps.toFixed(1)} <small>t/s</small></div>`}
-
-function renderEstimate(e){if(!e){setText('estimate','—');setText('estimateNote','等待本机统计更新');return}setText('estimate',e.dollars==null?'—':dollar(e.dollars));const excluded=e.unpriced_requests?` · ${full(e.unpriced_requests)} 条价格待确认，未计入`:'';setText('estimateNote',`${e.price_as_of} 标准 API 价格${excluded}`)}
-function render(d){if(!d.periods?.[selected])throw Error('统计服务正在更新，请稍后刷新');last=d;const p=d.periods[selected],t=p.summary,s=p.speed_summary;renderEstimate(p.api_estimate);selectPeriod();$('connection').classList.remove('error');$('connection').querySelector('span').textContent='已同步';setText('range',selected==='today'?day(p.start)+' · 00:00 至今':day(p.start)+' — '+day(p.end));setNumber('total',t.total);setNumber('input',t.input);setNumber('output',t.output);setNumber('cached',t.cached);setNumber('reasoning',t.reasoning);setText('fresh','新输入 '+compact(t.fresh));$('fresh').title=full(t.fresh);setText('cacheRatio','命中率 '+(t.cache_hit_rate*100).toFixed(1)+'%');setText('counts',`${full(t.requests)} 个请求 · ${full(t.sessions)} 个会话`);setText('average',s.tps==null?'—':s.tps.toFixed(1));setText('samples',s.samples?`${full(s.samples)} 条完整计时`:'暂无完整计时');setText('chartTitle',selected==='today'?'按小时使用量':'每日使用量');drawChart(p);setText('coverage',d.coverage?.first_record?`本机记录始于 ${day(d.coverage.first_record)} · 此范围内 ${p.coverage.recorded_days} 天有记录`:'暂无本机会话记录');const active=d.active_requests||[],latest=d.latest;$('live').classList.toggle('busy',active.length>0);setText('liveState',d.status?.scan_error?'扫描暂时异常':active.length?`请求进行中 · ${Math.max(0,Math.floor(d.generated_at-active[0].started))} 秒`:'等待新请求');setText('latest',latest?'最近实测 '+latest.tps.toFixed(1)+' t/s':'等待首次完整计时');$('latest').title=latest?clock(latest.ts)+' · '+latest.model+' · 请求完成后更新':'';setText('modelCount',(p.models||[]).length+' 个模型');reconcile('models',p.models||[],m=>m.model,modelMarkup,'所选范围暂无模型记录。');setText('updated',clock(d.generated_at)+' 更新 · 本机保存')}
-function showError(e){$('connection').classList.add('error');$('connection').querySelector('span').textContent='连接中断';setText('liveState',e.message||'暂时无法连接')}
+function requestMarkup(r){const effort=r.effort?esc(r.effort.toUpperCase()):t('notRecorded'),duration=r.duration_ms==null?t('incompleteTiming'):t('seconds',{value:decimal(r.duration_ms/1000,2)});return `<div class="request-main"><div class="request-top"><span class="request-name">${esc(r.model||t('unknownModel'))}</span><span class="effort ${r.effort?'':'unknown'}" title="${t('effortTitle')}">${effort}</span></div><div class="request-meta">${esc(t('requestMeta',{day:day(r.ts),time:clock(r.ts),output:full(r.output),duration}))}</div></div><div class="request-value">${r.tps==null?'—':decimal(r.tps,1)} <small>t/s</small></div>`}
+function renderEstimate(e){if(!e){setText('estimate','—');setText('estimateNote',t('waitingStats'));return}setText('estimate',e.dollars==null?'—':dollar(e.dollars));const excluded=e.unpriced_requests?count('unpricedExcluded',e.unpriced_requests):'';setText('estimateNote',t('standardPrices',{date:e.price_as_of})+excluded)}
+function render(d){if(!d.periods?.[selected])throw uiError('updating');last=d;lastError=null;const p=d.periods[selected],tally=p.summary,s=p.speed_summary;renderEstimate(p.api_estimate);selectPeriod();$('connection').classList.remove('error');$('connection').querySelector('span').textContent=t('synced');setText('range',selected==='today'?t('todayRange',{date:day(p.start)}):day(p.start)+' — '+day(p.end));setNumber('total',tally.total);setNumber('input',tally.input);setNumber('output',tally.output);setNumber('cached',tally.cached);setNumber('reasoning',tally.reasoning);setText('fresh',t('newInputValue',{value:compact(tally.fresh)}));$('fresh').title=full(tally.fresh);setText('cacheRatio',t('hitRate',{value:decimal(tally.cache_hit_rate*100,1)+'%'}));setText('counts',count('requests',tally.requests)+' · '+count('sessions',tally.sessions));setText('average',s.tps==null?'—':decimal(s.tps,1));setText('samples',s.samples?count('samples',s.samples):t('noTiming'));setText('chartTitle',t(selected==='today'?'hourlyUsage':'dailyUsage'));drawChart(p);setText('coverage',d.coverage?.first_record?count('coverage',p.coverage.recorded_days,{date:day(d.coverage.first_record)}):t('noLocalSessions'));const active=d.active_requests||[],latest=d.latest;$('live').classList.toggle('busy',active.length>0);setText('liveState',d.status?.scan_error?t('scanError'):active.length?t('activeRequest',{value:full(Math.max(0,Math.floor(d.generated_at-active[0].started)))}):t('waitingNew'));setText('latest',latest?t('latestMeasured',{value:decimal(latest.tps,1)+' t/s'}):t('firstTiming'));$('latest').title=latest?clock(latest.ts)+' · '+latest.model+' · '+t('afterCompletion'):'';setText('modelCount',count('models',(p.models||[]).length));reconcile('models',p.models||[],m=>m.model,modelMarkup,t('noModels'));setText('updated',t('updated',{time:clock(d.generated_at)}))}
+function showError(e){lastError=e;$('connection').classList.add('error');$('connection').querySelector('span').textContent=t('disconnected');setText('liveState',errorText(e,'unavailable'))}
 function schedule(delay){clearTimeout(timer);if(!document.hidden)timer=setTimeout(refresh,delay)}
 async function readLocalStats(path='/api/stats'){
 const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),7000);
-try{const response=await fetch(path,{cache:'no-store',signal:controller.signal});if(!response.ok)throw Error('本地服务连接失败');return await response.json()}
-catch(e){if(controller.signal.aborted)throw Error('本地服务响应超时，稍后自动重试');throw e}
+try{const response=await fetch(path,{cache:'no-store',signal:controller.signal});if(!response.ok)throw uiError('localFailed');return await response.json()}
+catch(e){if(controller.signal.aborted)throw uiError('localTimeout');throw e?.i18nKey?e:uiError('localFailed')}
 finally{clearTimeout(timeout)}
 }
-async function refresh(){if(busy)return;busy=true;$('refresh').classList.add('busy');try{let d;if(embedded){ready=ready||connect();const mode=await ready,result=mode==='legacy'?await window.openai.callTool('get_token_usage',{}):await rpc('tools/call',{name:'get_token_usage',arguments:{}});if(result.isError)throw Error(result.content?.[0]?.text||'本地服务不可用');d=result.structuredContent}else{if(!['127.0.0.1','localhost'].includes(location.hostname))throw Error('请从 Codex Token Monitor 插件打开面板');d=await readLocalStats()}render(d);failures=0;if(historyPage===0||!historyData)await loadHistory()}catch(e){ready=null;failures++;showError(e)}finally{busy=false;$('refresh').classList.remove('busy');schedule(Math.min(30000,5000*Math.max(1,failures)))}}
-for(const button of periodButtons)button.addEventListener('click',()=>{if(selected===button.dataset.period)return;selected=button.dataset.period;selectPeriod();try{window.openai?.setWidgetState?.({period:selected})}catch(e){}resetHistory();if(last)render(last);loadHistory()});
-function updatePager(){
-$('historyCard').setAttribute('aria-busy',String(historyBusy));
-$('firstPage').disabled=historyBusy||historyPage===0;
-$('prevPage').disabled=historyBusy||historyPage===0;
-$('nextPage').disabled=historyBusy||!historyData?.next_cursor;
-setText('pageInfo','第 '+full(historyPage+1)+' 页');
+async function refresh(){if(busy)return;busy=true;$('refresh').classList.add('busy');try{let d;if(embedded){const result=await callTool('get_token_usage',{});if(result.isError)throw uiError('localUnavailable');d=result.structuredContent}else{if(!['127.0.0.1','localhost'].includes(location.hostname))throw uiError('openFromPlugin');d=await readLocalStats()}render(d);failures=0;if(historyPage===0||!historyData)await loadHistory()}catch(e){ready=null;failures++;showError(e)}finally{busy=false;$('refresh').classList.remove('busy');schedule(Math.min(30000,5000*Math.max(1,failures)))}}
+for(const button of periodButtons)button.addEventListener('click',()=>{if(selected===button.dataset.period)return;selected=button.dataset.period;selectPeriod();saveWidgetState();resetHistory();if(last)render(last);loadHistory()});
+function updatePager(){$('historyCard').setAttribute('aria-busy',String(historyBusy));$('firstPage').disabled=historyBusy||historyPage===0;$('prevPage').disabled=historyBusy||historyPage===0;$('nextPage').disabled=historyBusy||!historyData?.next_cursor;setText('pageInfo',t('page',{n:full(historyPage+1)}))}
+function renderHistory(){
+  if(historyData){reconcile('requests',historyData.records,r=>r.id,requestMarkup,t('noHistory'));setText('historyCount',count('records',historyData.total))}
+  else{reconcile('requests',[],r=>r.id,requestMarkup,t('loadingRequests'));setText('historyCount',t('loading'))}
+  $('historyStatus').classList.toggle('error',!!historyError);
+  setText('historyStatus',historyError?errorText(historyError,'historyFailed'):t(historyBusy?'loadingRecords':!historyData?'loadingRange':historyPage===0?'historyLatest':'historyBrowsing'));updatePager();
 }
-function resetHistory(){historySeq++;historyBusy=false;historyPage=0;historyCursors=[null];historyData=null;updatePager();reconcile('requests',[],r=>r.id,requestMarkup,'正在读取请求记录…')}
+function resetHistory(){historySeq++;historyBusy=false;historyPage=0;historyCursors=[null];historyData=null;historyError=null;renderHistory()}
 async function loadHistory(page=historyPage){
-if(historyBusy)return;historyBusy=true;const seq=++historySeq,period=selected,cursor=historyCursors[page];updatePager();$('historyStatus').classList.remove('error');setText('historyStatus','正在读取记录…');
+if(historyBusy)return;historyBusy=true;historyError=null;const seq=++historySeq,period=selected,cursor=historyCursors[page];renderHistory();
 try{const args={period,limit:pageSize};if(cursor)args.cursor=cursor;let data;
-if(embedded){ready=ready||connect();const mode=await ready,result=mode==='legacy'?await window.openai.callTool('get_request_history',args):await rpc('tools/call',{name:'get_request_history',arguments:args});if(result.isError)throw Error(result.content?.[0]?.text||'请求记录暂时不可用');data=result.structuredContent}
-else data=await readLocalStats('/api/requests?'+new URLSearchParams(args));
-if(seq!==historySeq||period!==selected)return;if(!Array.isArray(data?.records))throw Error('请将本地采集服务更新至最新版本');historyPage=page;historyData=data;historyCursors=historyCursors.slice(0,page+1);if(data.next_cursor)historyCursors[page+1]=data.next_cursor;
-reconcile('requests',data.records,r=>r.id,requestMarkup,'所选范围暂无请求计时记录。');setText('historyCount',full(data.total)+' 条记录');setText('historyStatus',page===0?'最新页自动更新 · 可翻页查看所选范围内的全部计时记录':'正在浏览历史页 · 自动刷新不会打断翻页');
-}catch(e){if(seq===historySeq){$('historyStatus').classList.add('error');setText('historyStatus',e.message||'暂时无法读取，请稍后刷新')}}
-finally{if(seq===historySeq){historyBusy=false;updatePager()}}
+if(embedded){const result=await callTool('get_request_history',args);if(result.isError)throw uiError('historyUnavailable');data=result.structuredContent}else data=await readLocalStats('/api/requests?'+new URLSearchParams(args));
+if(seq!==historySeq||period!==selected)return;if(!Array.isArray(data?.records))throw uiError('updateCollector');historyPage=page;historyData=data;historyCursors=historyCursors.slice(0,page+1);if(data.next_cursor)historyCursors[page+1]=data.next_cursor;
+}catch(e){if(seq===historySeq)historyError=e}
+finally{if(seq===historySeq){historyBusy=false;renderHistory()}}
 }
-$('firstPage').addEventListener('click',()=>loadHistory(0));
-$('prevPage').addEventListener('click',()=>{if(historyPage>0)loadHistory(historyPage-1)});
-$('nextPage').addEventListener('click',()=>{if(historyData?.next_cursor)loadHistory(historyPage+1)});
-$('pageSize').addEventListener('change',()=>{pageSize=Number($('pageSize').value);resetHistory();loadHistory()});
+$('firstPage').addEventListener('click',()=>loadHistory(0));$('prevPage').addEventListener('click',()=>{if(historyPage>0)loadHistory(historyPage-1)});$('nextPage').addEventListener('click',()=>{if(historyData?.next_cursor)loadHistory(historyPage+1)});
+$('pageSize').addEventListener('change',()=>{pageSize=Number($('pageSize').value);resetHistory();loadHistory()});$('language').addEventListener('change',()=>setLanguage($('language').value));
 $('refresh').addEventListener('click',()=>{clearTimeout(timer);refresh()});$('methodButton').addEventListener('click',()=>{$('methodButton').setAttribute('aria-expanded',String($('method').classList.toggle('open')))});
 if(embedded&&window.ResizeObserver)new ResizeObserver(()=>{cancelAnimationFrame(resizeFrame);resizeFrame=requestAnimationFrame(()=>{const height=Math.ceil(document.documentElement.scrollHeight);if(height!==lastHeight){lastHeight=height;notify('ui/notifications/size-changed',{height})}})}).observe(document.body);
-window.addEventListener('resize',()=>{if(last)drawChart(last.periods[selected])});
-document.addEventListener('visibilitychange',()=>{if(document.hidden)clearTimeout(timer);else refresh()});window.addEventListener('pagehide',()=>clearTimeout(timer));selectPeriod();refresh();
+if(window.MutationObserver){localeObserver=new MutationObserver(()=>{hostLocale=validLocale(document.documentElement.lang);localize()});observeLocale()}
+window.addEventListener('resize',()=>{if(last)drawChart(last.periods[selected])});document.addEventListener('visibilitychange',()=>{if(document.hidden)clearTimeout(timer);else refresh()});window.addEventListener('pagehide',()=>clearTimeout(timer));localize();selectPeriod();refresh();
 </script></body></html>

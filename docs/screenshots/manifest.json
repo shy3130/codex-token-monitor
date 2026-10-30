@@ -1,51 +1,95 @@
 {
-  "version": "1.5.2",
-  "capturedAt": "2026-10-30T08:04:56.285Z",
+  "version": "1.6.0",
+  "capturedAt": "2026-10-30T14:13:40.535Z",
   "data": "synthetic",
   "uiSource": {
     "path": "plugin/ui/monitor.html",
-    "sha256": "7cc68ab267614b567f6caefd69c2123a1f1724032630a6c8d3f3f5f38f56792a"
+    "sha256": "c9e84cfce9b332af568b46dff7792ff724f4769c7b503b657c169a5e4d473739"
   },
   "images": {
-    "dashboard-v1.5.2-overview-light.png": {
+    "dashboard-v1.6.0-overview-light.png": {
       "width": 1440,
-      "height": 1099,
-      "sha256": "858800e7c447e0e5caa4d13d92f2a7fe3f7fa7857c37e56a200c2bc7139c7e23"
+      "height": 1109,
+      "locale": "zh-CN",
+      "sha256": "2ce070a89ab2db01506fd1900e1c8425a59035cf13fbc92e71458e8c3d22fce6"
     },
-    "dashboard-v1.5.2-light.png": {
+    "dashboard-v1.6.0-light.png": {
       "width": 1440,
-      "height": 1707,
-      "sha256": "6c0452e927b614d51c2bc837a8bc112a8d457381c4ae11635619e8400facb14d"
+      "height": 1716,
+      "locale": "zh-CN",
+      "sha256": "f2d20cdbafb1ba7ef8ebc1c1ec51a9f1092327cccb506dc7b4cfe45f7dc7c2af"
     },
-    "dashboard-v1.5.2-dark.png": {
+    "dashboard-v1.6.0-dark.png": {
       "width": 1440,
-      "height": 1707,
-      "sha256": "eaea2a9819d9f272aee85c9252a1616018830fce0011efb81167dd145a4f7733"
+      "height": 1716,
+      "locale": "zh-CN",
+      "sha256": "5623a80554f5541ab4832190938a2714ee7ca4b36f4d969754162431e5e3f051"
     },
-    "dashboard-v1.5.2-overview-dark.png": {
+    "dashboard-v1.6.0-overview-dark.png": {
       "width": 1440,
-      "height": 1099,
-      "sha256": "4c575c532a6d02b520cf2e85dc388d5e8e78e45c8ce46c16ee37397b96dab23e"
+      "height": 1109,
+      "locale": "zh-CN",
+      "sha256": "2ee744e101daf6059675bc325f79106617248a0fe4115423b0912892bcc1e5c4"
     },
-    "dashboard-v1.5.2-mobile.png": {
+    "dashboard-v1.6.0-mobile.png": {
       "width": 390,
-      "height": 1992,
-      "sha256": "aa2773d167890058c54aa983014f997145b314a4255df6c7e989a413779e2670"
+      "height": 2002,
+      "locale": "zh-CN",
+      "sha256": "104d947493c3d9b9b5261d9f6f9ae9792d567dbf06b37c04176ab69dbaff1d23"
     },
-    "models-v1.5.2-light.png": {
+    "models-v1.6.0-light.png": {
       "width": 733,
       "height": 683,
+      "locale": "zh-CN",
       "sha256": "11ed6336facf442dcfbd3d21ce6bf04d41185b45aafa17da023dd520087f33fe"
     },
-    "models-v1.5.2-dark.png": {
+    "models-v1.6.0-dark.png": {
       "width": 733,
       "height": 683,
+      "locale": "zh-CN",
       "sha256": "8adce33c514a2d134fe064b8b45cd1f9abd1a05bc86e926146826345e8f1d465"
     },
-    "models-v1.5.2-mobile.png": {
+    "models-v1.6.0-mobile.png": {
       "width": 326,
       "height": 725,
+      "locale": "zh-CN",
       "sha256": "10863baebeb98d63d760ec9eac75bcb7b4e512e1dec6e3bab13f56d83a30c535"
+    },
+    "dashboard-v1.6.0-en-light.png": {
+      "width": 1440,
+      "height": 1716,
+      "locale": "en-US",
+      "sha256": "da204ac8ea71cc242a9fa7f1e19a028711d8b9f3f39622ec8976679a132e642e"
+    },
+    "dashboard-v1.6.0-en-dark.png": {
+      "width": 1440,
+      "height": 1716,
+      "locale": "en-US",
+      "sha256": "3b9cc98bd08d5dd2f9b3b47f19717b32c1945cf361719d2884133a4e7002dbd8"
+    },
+    "models-v1.6.0-en-light.png": {
+      "width": 733,
+      "height": 683,
+      "locale": "en-US",
+      "sha256": "0bbc18c0e4ded5c9b427d4e796e5b7c1535ede5d545e3104352fa884ba54430b"
+    },
+    "models-v1.6.0-en-dark.png": {
+      "width": 733,
+      "height": 683,
+      "locale": "en-US",
+      "sha256": "befa6c7fdb6ec4218a74083a20385a41256b738a1fbfb048174da077e0b95d01"
+    },
+    "models-v1.6.0-en-mobile.png": {
+      "width": 326,
+      "height": 761,
+      "locale": "en-US",
+      "sha256": "0de61fd6b14ee003670e5d6f8744dcfb951850cb9d917eed385d9f6e2f2bd4e4"
+    },
+    "dashboard-v1.6.0-en-mobile.png": {
+      "width": 390,
+      "height": 2745,
+      "locale": "en-US",
+      "sha256": "181e707eb316d2b5f1809c8d8fd5b5d99eed0d976eb96616aa1dd2632c7c79b3"
     }
   }
 }

@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "token-monitor",
-  "version": "1.5.2",
-  "description": "按模型查看本机 Codex Token、TPS、思考强度和 API 参考费用。",
+  "version": "1.6.0",
+  "description": "本机 Codex 用量、TPS 与 API 参考费用 / Local Codex usage, TPS and estimated API costs.",
   "author": {
     "name": "Local Tools"
   },
@@ -12,8 +12,8 @@
       "requires_local_executor": true,
       "interface": {
         "displayName": "Codex Token Monitor",
-        "shortDescription": "查看本机用量和各模型 API 参考费用",
-        "longDescription": "按模型查看本机 Token、请求 TPS、思考强度和 API 参考费用。费用按公开标准价格估算，不代表实际账单。",
+        "shortDescription": "用量与费用 · Local usage & cost",
+        "longDescription": "按模型查看本机 Token、TPS、思考强度和 API 参考费用，面板支持中英文。View local tokens, TPS, reasoning effort and estimated API costs by model, in Chinese or English. 费用为估算 / Costs are estimates, not invoices.",
         "developerName": "Local Tools",
         "category": "Productivity",
         "capabilities": [
@@ -23,7 +23,8 @@
         "composerIcon": "./assets/icon.png",
         "logo": "./assets/icon.png",
         "defaultPrompt": [
-          "打开 Codex Token Monitor，查看今天的 Token 用量和 TPS。"
+          "打开 Codex Token Monitor，查看今天的 Token 用量和 TPS。",
+          "Open Codex Token Monitor and show today’s token usage and TPS."
         ],
         "brandColorDark": "#A9B9FF",
         "composerIconDark": "./assets/icon.png",

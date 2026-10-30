@@ -33,6 +33,12 @@ async function main() {
     modelsLight: `models-v${version}-light.png`,
     modelsDark: `models-v${version}-dark.png`,
     modelsMobile: `models-v${version}-mobile.png`,
+    dashboardEnglishLight: `dashboard-v${version}-en-light.png`,
+    dashboardEnglishDark: `dashboard-v${version}-en-dark.png`,
+    modelsEnglishLight: `models-v${version}-en-light.png`,
+    modelsEnglishDark: `models-v${version}-en-dark.png`,
+    modelsEnglishMobile: `models-v${version}-en-mobile.png`,
+    mobileEnglish: `dashboard-v${version}-en-mobile.png`,
   };
   let chromium;
   try {
@@ -164,6 +170,32 @@ async function main() {
     await page.locator('#refresh').evaluate(el => el.blur());
     await page.evaluate(() => scrollTo(0, 0));
     await screenshot(files.mobile);
+    await page.locator('#language').selectOption('en');
+    await page.setViewportSize({ width: 1440, height: 1050 });
+    await page.locator('[data-period="7d"]').click();
+    await page.waitForFunction(() => document.querySelector('#historyCard').getAttribute('aria-busy') === 'false');
+    await page.locator('#modelBreakdown').evaluate(el => { el.open = true; });
+    await screenshot(files.dashboardEnglishLight);
+    await page.locator('#modelBreakdown').screenshot({ path: path.join(output, files.modelsEnglishLight), animations: 'disabled' });
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await screenshot(files.dashboardEnglishDark);
+    await page.locator('#modelBreakdown').screenshot({ path: path.join(output, files.modelsEnglishDark), animations: 'disabled' });
+    await page.emulateMedia({ colorScheme: 'light' });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.locator('#modelBreakdown').screenshot({ path: path.join(output, files.modelsEnglishMobile), animations: 'disabled' });
+    await screenshot(files.mobileEnglish);
+    // Check the visible English copy, excluding the native-language selector options.
+    const chinese = await page.evaluate(() => {
+      const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      const found = [];
+      while (walker.nextNode()) {
+        const node = walker.currentNode;
+        if (!node.parentElement.closest('script,style,option') && /\p{Script=Han}/u.test(node.textContent)) found.push(node.textContent);
+      }
+      return found;
+    });
+    assert.deepEqual(chinese, [], 'English UI should not contain untranslated Chinese copy');
+    await require('../tests/browser_i18n.cjs')(browser, base);
     assert.deepEqual(errors, [], 'Dashboard should have no browser script errors');
     assert.deepEqual(await fs.readFile(path.join(root, 'plugin/ui/monitor.html')), uiSource,
       'UI source must not change while screenshots are being captured');
@@ -171,13 +203,14 @@ async function main() {
     for (const name of Object.values(files)) {
       const data = await fs.readFile(path.join(output, name));
       images[name] = { width: data.readUInt32BE(16), height: data.readUInt32BE(20),
+        locale: name.includes('-en-') ? 'en-US' : 'zh-CN',
         sha256: createHash('sha256').update(data).digest('hex') };
     }
     await fs.writeFile(path.join(output, 'manifest.json'), JSON.stringify({ version,
       capturedAt: new Date().toISOString(), data: 'synthetic',
       uiSource: { path: 'plugin/ui/monitor.html', sha256: createHash('sha256').update(uiSource).digest('hex') },
       images }, null, 2) + '\n');
-    console.log(`OK: eight screenshots of v${version}; per-model metrics, responsive layout, pagination, refresh and keyboard checks`);
+    console.log(`OK: ${Object.keys(files).length} screenshots of v${version}; bilingual layouts, host/legacy locale, state preservation, metrics and pagination`);
     console.log(`Saved to ${output}`);
   } finally {
     try {

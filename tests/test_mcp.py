@@ -12,6 +12,11 @@ spec.loader.exec_module(server)
 
 
 class MCPProjectTests(unittest.TestCase):
+    def setUp(self):
+        self.locale_patch = mock.patch.object(server, 'CLIENT_LOCALE', '')
+        self.locale_patch.start()
+        self.addCleanup(self.locale_patch.stop)
+
     def test_new_ui_resource_has_its_own_version_and_legacy_uri_still_works(self):
         version = json.loads((ROOT / 'plugin/plugin.json').read_text())['version']
         self.assertEqual(server.URI, f'ui://token-monitor/panel-v{version}.html')
@@ -52,7 +57,37 @@ class MCPProjectTests(unittest.TestCase):
         with mock.patch.object(server, 'stats', side_effect=OSError('unavailable')):
             result = server.dispatch('tools/call', {'name': 'get_token_usage', 'arguments': {}})
         self.assertTrue(result['isError'])
+        self.assertIn('local collector', result['content'][0]['text'])
+
+    def test_initialize_locale_localizes_tools_and_results(self):
+        server.dispatch('initialize', {'_meta': {'openai/locale': 'zh-CN'}})
+        tools = server.dispatch('tools/list', {})['tools']
+        self.assertEqual(tools[1]['title'], '读取本地用量')
+        with mock.patch.object(server, 'stats', side_effect=OSError('unavailable')):
+            result = server.dispatch('tools/call', {'name': 'get_token_usage', 'arguments': {}})
         self.assertIn('采集服务', result['content'][0]['text'])
+        self.assertEqual(result['_meta']['token-monitor/locale'], 'zh-CN')
+
+    def test_per_call_locale_overrides_initialize_without_affecting_later_calls(self):
+        server.dispatch('initialize', {'_meta': {'openai/locale': 'zh-CN'}})
+        sample = {'today': {'total': 1200, 'input': 1000, 'output': 200}}
+        with mock.patch.object(server, 'stats', return_value=sample):
+            result = server.dispatch('tools/call', {'name': 'get_token_usage', 'arguments': {},
+                '_meta': {'openai/locale': 'en-GB'}})
+        self.assertIn('Today: 1,200 tokens', result['content'][0]['text'])
+        self.assertIn('Waiting for the first', result['content'][0]['text'])
+        self.assertEqual(result['_meta']['token-monitor/locale'], 'en-GB')
+        self.assertEqual(server.dispatch('tools/list', {})['tools'][1]['title'], '读取本地用量')
+
+    def test_optional_invalid_legacy_and_unsupported_locale_hints(self):
+        with mock.patch.object(server, 'stats', side_effect=OSError('unavailable')):
+            result = server.dispatch('tools/call', {'name': 'get_token_usage', 'arguments': {}})
+        self.assertNotIn('_meta', result)
+        for meta in (None, [], {'openai/locale': {}}, {'openai/locale': '<invalid>'}):
+            self.assertEqual(server.locale_hint({'_meta': meta}), '')
+        self.assertEqual(server.locale_hint({'_meta': {'webplus/i18n': 'zh_CN'}}), 'zh-CN')
+        tools = server.dispatch('tools/list', {'_meta': {'openai/locale': 'fr-FR'}})['tools']
+        self.assertEqual(tools[1]['title'], 'Read local usage')
 
     def test_history_rejects_invalid_arguments(self):
         for args in ({'limit': True}, {'limit': 101}, {'period': 'all'}, {'extra': 'value'}):

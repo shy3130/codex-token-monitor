@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-1.5.2-5267CB?style=flat-square" alt="版本 1.5.2"></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-1.6.0-5267CB?style=flat-square" alt="版本 1.6.0"></a>
   <img src="https://img.shields.io/badge/Python-3.9%2B-3776AB?style=flat-square&amp;logo=python&amp;logoColor=white" alt="Python 3.9 及以上">
   <img src="https://img.shields.io/badge/dependencies-standard_library-3D9D91?style=flat-square" alt="运行仅依赖 Python 标准库">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-64748B?style=flat-square" alt="MIT 许可证"></a>
@@ -26,17 +26,18 @@
 采集服务与 MCP 服务均使用 **Python 标准库**，统计数据保存在本地 SQLite；可直接在浏览器查看，也可接入支持 stdio MCP 的客户端。
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/dashboard-v1.5.2-dark.png">
-  <img src="docs/screenshots/dashboard-v1.5.2-light.png" width="1440" alt="v1.5.2 桌面总览：展开各模型的 Token、API 参考费用与平均 TPS，右侧为请求记录">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/dashboard-v1.6.0-dark.png">
+  <img src="docs/screenshots/dashboard-v1.6.0-light.png" width="1440" alt="v1.6.0 桌面总览：展开各模型的 Token、API 参考费用与平均 TPS，右侧为请求记录">
 </picture>
 
-<p align="center"><sub>v1.5.2 实际界面 · 模型明细已展开 · 截图使用虚构演示数据</sub></p>
+<p align="center"><sub>v1.6.0 实际界面 · 模型明细已展开 · 截图使用虚构演示数据</sub></p>
 
 ## 功能
 
 - **看用量** — 按今日、最近 7 日、最近 30 日查看输入、输出、缓存读取和推理 Token，配合小时或每日趋势。
 - **比模型** — 每个模型的 Token 总量、API 参考费用、平均 TPS 三列并排显示，附用量占比和完整计时样本数。
 - **查请求** — 查看单次请求的模型、思考强度、输出量、耗时和 TPS，支持每页 10 / 20 / 50 条及历史翻页。
+- **中英切换** — 默认跟随宿主语言，浏览器独立打开时跟随浏览器；页脚可选择“跟随环境 / 中文 / English”。
 - **留在本机** — 从本机 Codex 会话和遥测采集，服务只监听回环地址，界面刷新不额外调用模型。
 
 ## 界面预览
@@ -46,18 +47,18 @@
 主指标直接对齐展示，输入、输出、缓存和推理放在下一层。标准单价可按需展开；没有价格或完整计时的项目会明确标注。
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/models-v1.5.2-dark.png">
-  <img src="docs/screenshots/models-v1.5.2-light.png" width="734" alt="模型明细：Token 总量、API 参考费用与平均 TPS 三列对齐，下方列出 Token 构成">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/models-v1.6.0-dark.png">
+  <img src="docs/screenshots/models-v1.6.0-light.png" width="734" alt="模型明细：Token 总量、API 参考费用与平均 TPS 三列对齐，下方列出 Token 构成">
 </picture>
 
 <details>
 <summary><strong>查看窄屏布局</strong> — 单列总览与调用记录，保留三列模型主指标</summary>
 
 <p align="center">
-  <img src="docs/screenshots/models-v1.5.2-mobile.png" width="326" alt="390 像素窄屏中的模型明细，三列主指标完整可见">
+  <img src="docs/screenshots/models-v1.6.0-mobile.png" width="326" alt="390 像素窄屏中的模型明细，三列主指标完整可见">
 </p>
 
-完整页面：[窄屏总览](docs/screenshots/dashboard-v1.5.2-mobile.png) · [深色桌面](docs/screenshots/dashboard-v1.5.2-dark.png)
+完整页面：[窄屏总览](docs/screenshots/dashboard-v1.6.0-mobile.png) · [深色桌面](docs/screenshots/dashboard-v1.6.0-dark.png)
 
 </details>
 
@@ -106,6 +107,12 @@ python3 monitor.py --port 8765
 | `get_request_history` | 按时间范围、条数和游标读取请求计时记录 |
 
 支持通用 stdio MCP 交互；图形面板的显示取决于客户端的 MCP Apps 支持。不同客户端的配置位置和安装流程可能不同，详见 [MCP 接入说明](docs/getting-started.md#3-接入-mcp-客户端可选)。
+
+## 界面语言
+
+默认“跟随环境”：优先读取 MCP Apps 宿主语言、宿主写入的页面语言或旧版 OpenAI 桥接语言，工具提供的语言作为补充；独立浏览器页面使用浏览器语言。中文变体目前统一显示简体中文，英文保留地区日期和数字格式，其他语言回退到英文。
+
+页脚可手动选择“中文”或“English”。支持时将选择保存到组件状态，并以浏览器存储作为尽力保留的后备；切换语言会保留所选范围、历史页码和明细展开状态。统计时区始终为**北京时间（UTC+8）**。宿主切换语言后需发出语言更新或更新页面语言才能实时跟随，否则可重新打开面板或手动切换。插件目录简介和示例提示语采用静态中英双语。
 
 ## 统计说明
 

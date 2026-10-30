@@ -110,3 +110,11 @@ protocol = "json"
 1.5.2 起，界面资源地址包含版本号，页脚也显示版本号。新的模型明细应将 Token 总量、API 参考费用和平均 TPS 三列并排展示；若仍只有右侧金额和小字 Token，请核对插件实际安装版本，已有面板可能仍引用旧资源。发布界面改动时应同步更新插件版本和工具引用的资源地址，参见 [OpenAI UI 资源说明](https://developers.openai.com/plugins/build/chatgpt-ui)。
 
 [返回项目首页](../README.md)
+
+## 界面语言
+
+1.6.0 起，面板默认跟随宿主提供的 locale；独立浏览器页面跟随浏览器语言。页脚选择“中文”或“English”可覆盖自动检测，选择“跟随环境”恢复自动。中文变体目前使用简体中文，其他未支持的语言回退英文。切换语言不改变北京时间统计口径，也不会重置历史页码和展开状态。
+
+自动检测兼容 MCP Apps `hostContext.locale`、宿主的 `document.documentElement.lang` 镜像、旧版 `window.openai.locale` 和工具的 locale 提示。能否实时跟随取决于客户端是否通知语言变动；若当前面板未跟随，可重新打开面板或使用手动选择。偏好优先保存在支持的组件状态，浏览器存储作为后备，受客户端隔离和存储策略影响。
+
+语言入口与格式实现参见 [官方本地化说明](https://developers.openai.com/plugins/build/chatgpt-ui#widget-localization) 和 [桥接接口参考](https://developers.openai.com/plugins/reference)。插件安装页的简介和示例提示语属于静态元数据，提供中英双语文本。
