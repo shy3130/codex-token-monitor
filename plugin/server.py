@@ -90,7 +90,7 @@ def dispatch(method, params):
     if method == 'initialize':
         version = params.get('protocolVersion', '2025-06-18')
         return {'protocolVersion': version,
-            'serverInfo': {'name': 'token-monitor', 'version': '1.5.0', 'icons': ICONS},
+            'serverInfo': {'name': 'token-monitor', 'version': '1.5.1', 'icons': ICONS},
             'capabilities': {'tools': {}, 'resources': {}}}
     if method == 'ping':
         return {}

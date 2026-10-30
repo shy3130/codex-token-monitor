@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "token-monitor",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "按模型查看本机 Codex Token、TPS、思考强度和 API 参考费用。",
   "author": {
     "name": "Local Tools"
