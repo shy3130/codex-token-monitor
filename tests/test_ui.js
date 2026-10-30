@@ -1,0 +1,119 @@
+// Exercise refresh recovery using the real page script and a stalled local service.
+// Run with: node --test tests/test_ui.js
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+
+const html = fs.readFileSync(path.join(__dirname, '../plugin/ui/monitor.html'), 'utf8');
+const script = html.match(/<script>([\s\S]*?)<\/script>/)[1];
+const flush = () => new Promise(setImmediate);
+
+function boot(fetch) {
+  const timers = new Map(), elements = new Map();
+  let timerId = 0;
+  function element() {
+    const classes = new Set(), attrs = new Map(), child = { textContent: '' };
+    return {
+      textContent: '',
+      setAttribute: (key, value) => attrs.set(key, value),
+      classList: { add: value => classes.add(value), remove: value => classes.delete(value),
+        contains: value => classes.has(value) },
+      querySelector: () => child,
+      addEventListener() {},
+    };
+  }
+  const document = { hidden: false, querySelectorAll: () => [], addEventListener() {},
+    getElementById(id) {
+      if (!elements.has(id)) elements.set(id, element());
+      return elements.get(id);
+    } };
+  const window = { addEventListener() {} };
+  window.parent = window;
+  const context = vm.createContext({ window, document, fetch, AbortController, URLSearchParams,
+    location: { hostname: '127.0.0.1' },
+    setTimeout(fn, delay) { const id = ++timerId; timers.set(id, { fn, delay }); return id; },
+    clearTimeout: id => timers.delete(id) });
+  vm.runInContext(script, context, { filename: 'monitor.html' });
+  return { context, elements, timers, fire(delay) {
+    const found = [...timers].find(([, timer]) => timer.delay === delay);
+    assert.ok(found, `Expected a ${delay} ms timer`);
+    timers.delete(found[0]);
+    found[1].fn();
+  } };
+}
+
+test('a stalled local service times out, releases refresh and retries', async () => {
+  let calls = 0;
+  const app = boot((_, options) => {
+    calls++;
+    return new Promise((resolve, reject) => {
+      options.signal?.addEventListener('abort', () => reject(new Error('aborted')), { once: true });
+    });
+  });
+  assert.equal(calls, 1);
+  assert.equal(app.elements.get('refresh').classList.contains('busy'), true);
+  app.fire(7000);
+  await flush();
+  assert.equal(app.elements.get('refresh').classList.contains('busy'), false);
+  assert.match(app.elements.get('liveState').textContent, /响应超时/);
+  app.fire(5000);
+  assert.equal(calls, 2);
+  app.fire(7000);
+  await flush();
+  assert.ok([...app.timers.values()].some(timer => timer.delay === 10000));
+});
+
+test('a backend error keeps refresh usable and schedules another attempt', async () => {
+  const app = boot(async () => ({ ok: false }));
+  await flush();
+  assert.equal(app.elements.get('refresh').classList.contains('busy'), false);
+  assert.match(app.elements.get('liveState').textContent, /本地服务连接失败/);
+  assert.ok([...app.timers.values()].some(timer => timer.delay === 5000));
+});
+
+test('history can move past the first page and return to the latest page', async () => {
+  const seen = [];
+  const app = boot(async url => {
+    if (url === '/api/stats') return new Promise(() => {});
+    const second = new URL(url, 'http://localhost').searchParams.has('cursor');
+    return { ok: true, json: async () => ({ records: [{ id: second ? 'older' : 'newer' }],
+      total: 35, next_cursor: second ? null : 'cursor-next' }) };
+  });
+  app.context.reconcile = (id, rows) => { if (id === 'requests') seen.push(rows.map(r => r.id)); };
+  await app.context.loadHistory();
+  assert.equal(app.elements.get('nextPage').disabled, false);
+  await app.context.loadHistory(1);
+  assert.equal(app.elements.get('pageInfo').textContent, '第 2 页');
+  assert.equal(app.elements.get('nextPage').disabled, true);
+  assert.equal(app.elements.get('prevPage').disabled, false);
+  await app.context.loadHistory(0);
+  assert.deepEqual(seen, [['newer'], ['older'], ['newer']]);
+});
+
+test('a slow history response cannot overwrite a newly selected period', async () => {
+  let finishOld;
+  const app = boot(async url => {
+    if (url === '/api/stats') return new Promise(() => {});
+    if (url.includes('period=today')) return new Promise(resolve => { finishOld = resolve; });
+    return { ok: true, json: async () => ({ records: [{ id: 'week' }], total: 1, next_cursor: null }) };
+  });
+  let current;
+  app.context.reconcile = (id, rows) => { if (id === 'requests') current = rows.map(r => r.id).join(','); };
+  const old = app.context.loadHistory();
+  vm.runInContext("selected='7d';resetHistory()", app.context);
+  await app.context.loadHistory();
+  finishOld({ ok: true, json: async () => ({ records: [{ id: 'stale' }], total: 1, next_cursor: null }) });
+  await old;
+  assert.equal(current, 'week');
+});
+
+test('effort badges show only the setting and escape model names', () => {
+  const app = boot(async () => new Promise(() => {}));
+  const markup = app.context.requestMarkup({ model: '<test>', effort: 'xhigh', ts: 1793239200,
+    output: 100, duration_ms: 2000, tps: 50 });
+  assert.match(markup, />XHIGH<\/span>/);
+  assert.doesNotMatch(markup, /思考 ·/);
+  assert.match(markup, /&lt;test&gt;/);
+});

@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "codex-token-monitor": {
+      "command": "python3",
+      "args": ["/absolute/path/codex-token-monitor/plugin/server.py"],
+      "env": {
+        "TOKEN_MONITOR_BACKEND_URL": "http://127.0.0.1:8765"
+      }
+    }
+  }
+}

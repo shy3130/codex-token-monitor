@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "monitor": {
+      "command": "python3",
+      "args": [
+        "${PLUGIN_ROOT}/server.py"
+      ],
+      "cwd": "${PLUGIN_ROOT}"
+    }
+  }
+}

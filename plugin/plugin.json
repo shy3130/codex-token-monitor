@@ -1,0 +1,34 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "token-monitor",
+  "version": "1.5.0",
+  "description": "按模型查看本机 Codex Token、TPS、思考强度和 API 参考费用。",
+  "author": {
+    "name": "Local Tools"
+  },
+  "license": "MIT",
+  "extensions": {
+    "com.openai": {
+      "requires_local_executor": true,
+      "interface": {
+        "displayName": "Codex Token Monitor",
+        "shortDescription": "查看本机用量和各模型 API 参考费用",
+        "longDescription": "按模型查看本机 Token、请求 TPS、思考强度和 API 参考费用。费用按公开标准价格估算，不代表实际账单。",
+        "developerName": "Local Tools",
+        "category": "Productivity",
+        "capabilities": [
+          "Read"
+        ],
+        "brandColor": "#5267CB",
+        "composerIcon": "./assets/icon.png",
+        "logo": "./assets/icon.png",
+        "defaultPrompt": [
+          "打开 Codex Token Monitor，查看今天的 Token 用量和 TPS。"
+        ],
+        "brandColorDark": "#A9B9FF",
+        "composerIconDark": "./assets/icon.png",
+        "logoDark": "./assets/icon.png"
+      }
+    }
+  }
+}
