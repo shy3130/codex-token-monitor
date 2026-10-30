@@ -117,3 +117,29 @@ test('effort badges show only the setting and escape model names', () => {
   assert.doesNotMatch(markup, /思考 ·/);
   assert.match(markup, /&lt;test&gt;/);
 });
+
+test('model metrics show missing timing and pricing without inventing zero values', () => {
+  const app = boot(async () => new Promise(() => {}));
+  const markup = app.context.modelMarkup({ model: '<unknown>', requests: 1,
+    total: 1200, input: 1000, output: 200, cached: 800, reasoning: 50,
+    token_share: 1, speed_summary: { samples: 0, tps: null },
+    api_estimate: { dollars: null } });
+  assert.match(markup, /&lt;unknown&gt;/);
+  assert.match(markup, /暂无完整计时/);
+  assert.match(markup, /价格待确认/);
+  assert.match(markup, /未计入参考合计/);
+  assert.match(markup, /占总量 100\.0%/);
+  assert.doesNotMatch(markup, /\$0\.00|>0\.0<small>/);
+});
+
+test('small model costs retain precision and missing backend fields degrade clearly', () => {
+  const app = boot(async () => new Promise(() => {}));
+  const markup = app.context.modelMarkup({ model: 'test', requests: 1, total: 100,
+    input: 90, output: 10, cached: 0, reasoning: 0,
+    api_estimate: { dollars: 0.00001, provider: '<vendor>',
+      input_per_million: 1, cached_per_million: 0.1, output_per_million: 5 } });
+  assert.match(markup, /&lt;\$0\.0001/);
+  assert.match(markup, /&lt;vendor&gt;/);
+  assert.match(markup, /暂无完整计时/);
+  assert.doesNotMatch(markup, /NaN|undefined/);
+});

@@ -1,65 +1,152 @@
-# Codex Token Monitor
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme-cover-dark.svg">
+  <img src="docs/assets/readme-cover-light.svg" width="1280" alt="Codex Token Monitor — 本地 Token 用量、模型速度与 API 参考费用面板">
+</picture>
 
-本地 Token 用量和模型请求速度监测项目。它读取本机 Codex 的会话记录与遥测，按今日、最近 7 日和最近 30 日展示 Token、TPS、模型、思考强度与 API 参考费用。采集服务、MCP 接口和界面都在此项目中，使用 Python 3 标准库运行，无需安装第三方 Python 包。
+<p align="center">
+  <strong>简体中文</strong> · <a href="README.en.md">English</a>
+</p>
 
-## 现在如何使用
+<p align="center">
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-1.5.2-5267CB?style=flat-square" alt="版本 1.5.2"></a>
+  <img src="https://img.shields.io/badge/Python-3.9%2B-3776AB?style=flat-square&amp;logo=python&amp;logoColor=white" alt="Python 3.9 及以上">
+  <img src="https://img.shields.io/badge/dependencies-standard_library-3D9D91?style=flat-square" alt="运行仅依赖 Python 标准库">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-64748B?style=flat-square" alt="MIT 许可证"></a>
+</p>
 
-当前版本为 **1.5.1**，包含 [更新记录](CHANGELOG.md) 中列出的 TPS 和刷新修复。项目源码与已安装的运行副本分开管理：修改或拉取源码后，需要更新运行副本并重启采集服务才会生效。更新前应备份运行代码与数据库，保留原来的统计数据目录。
+<p align="center">
+  <a href="#快速开始">快速开始</a> ·
+  <a href="#界面预览">界面预览</a> ·
+  <a href="docs/getting-started.md">使用文档</a> ·
+  <a href="CONTRIBUTING.md">参与贡献</a>
+</p>
 
-采集服务默认使用 `127.0.0.1:8765`。支持本地 stdio MCP 服务的客户端可以参考 [examples/mcp-client.json](examples/mcp-client.json)，让项目里的 MCP 服务读取采集结果。**先将示例中的 `/absolute/path/codex-token-monitor/plugin/server.py` 改为本机实际绝对路径**；不同客户端的配置位置和格式也可能不同。
+**Codex Token Monitor** 是一个在本机运行的 Codex 用量与性能面板。查看今天用了多少 Token、哪个模型消耗最多、每次请求有多快，以及按 API 标准价格折算的参考费用。
 
-客户端支持 MCP Apps 时可以尝试通过 `open_token_monitor` 打开图形面板；不支持图形面板的 MCP 客户端可以调用 `get_token_usage` 读取用量数据。不同客户端的界面支持有所不同，目前仅验证了通用 stdio MCP 交互，没有逐一验证其他产品。
+采集服务与 MCP 服务均使用 **Python 标准库**，统计数据保存在本地 SQLite；可直接在浏览器查看，也可接入支持 stdio MCP 的客户端。
 
-宽屏界面采用左右布局，窄屏自动切换为单列。模型费用明细放在 API 参考合计下方，默认收起；点击“展开”可查看各模型用量、单价和参考费用，自动刷新保留展开状态。调用记录每页可选 10、20、50 条，可持续翻页查看所选范围内的全部已采集计时记录；浏览历史页时，自动刷新保留当前页。强度徽标只显示 HIGH、XHIGH 等设置值。HTTP `/api/requests` 与 MCP `get_request_history` 均支持游标分页。
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/dashboard-v1.5.2-dark.png">
+  <img src="docs/screenshots/dashboard-v1.5.2-light.png" width="1440" alt="v1.5.2 桌面总览：展开各模型的 Token、API 参考费用与平均 TPS，右侧为请求记录">
+</picture>
 
-## 独立运行采集服务
+<p align="center"><sub>v1.5.2 实际界面 · 模型明细已展开 · 截图使用虚构演示数据</sub></p>
 
-在终端运行：
+## 功能
+
+- **看用量** — 按今日、最近 7 日、最近 30 日查看输入、输出、缓存读取和推理 Token，配合小时或每日趋势。
+- **比模型** — 每个模型的 Token 总量、API 参考费用、平均 TPS 三列并排显示，附用量占比和完整计时样本数。
+- **查请求** — 查看单次请求的模型、思考强度、输出量、耗时和 TPS，支持每页 10 / 20 / 50 条及历史翻页。
+- **留在本机** — 从本机 Codex 会话和遥测采集，服务只监听回环地址，界面刷新不额外调用模型。
+
+## 界面预览
+
+### 按模型比较用量、费用与速度
+
+主指标直接对齐展示，输入、输出、缓存和推理放在下一层。标准单价可按需展开；没有价格或完整计时的项目会明确标注。
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/models-v1.5.2-dark.png">
+  <img src="docs/screenshots/models-v1.5.2-light.png" width="734" alt="模型明细：Token 总量、API 参考费用与平均 TPS 三列对齐，下方列出 Token 构成">
+</picture>
+
+<details>
+<summary><strong>查看窄屏布局</strong> — 单列总览与调用记录，保留三列模型主指标</summary>
+
+<p align="center">
+  <img src="docs/screenshots/models-v1.5.2-mobile.png" width="326" alt="390 像素窄屏中的模型明细，三列主指标完整可见">
+</p>
+
+完整页面：[窄屏总览](docs/screenshots/dashboard-v1.5.2-mobile.png) · [深色桌面](docs/screenshots/dashboard-v1.5.2-dark.png)
+
+</details>
+
+所有展示图均来自项目实际界面，使用独立的虚构数据。[查看截图与生成方式](docs/screenshots/README.md)
+
+## 快速开始
+
+需要 **Python 3.9+**。以下命令适用于 macOS / Linux，运行服务无需安装第三方 Python 包。
+
+### 先体验界面
 
 ```sh
+git clone https://github.com/shy3130/codex-token-monitor.git
 cd codex-token-monitor
-python3 monitor.py --port 8766
+python3 scripts/demo.py
 ```
 
-这里使用 `8766`，以避开可能已运行的 `8765` 服务。服务默认扫描 `~/.codex` 下面的会话记录，并把项目自身的统计数据写入 `data/metrics.sqlite3`；也可以通过 `--codex-dir` 和 `--data-dir` 指定其他目录。需要使用本项目服务的 MCP 客户端，将配置中的 `TOKEN_MONITOR_BACKEND_URL` 改为 `http://127.0.0.1:8766`。该服务地址只接受本机回环地址。
+打开 **[http://127.0.0.1:8877](http://127.0.0.1:8877/)**。演示内置最近 30 日的虚构数据，仅使用内存数据库，不读取你的 Codex 会话。按 `Ctrl+C` 停止。
 
-独立服务也提供可选的本地调试界面 `http://127.0.0.1:8766/`；使用 MCP 客户端不需要打开网页。
+### 采集自己的 Codex 用量
 
-Token 统计可以从本地会话重建。TPS 还需要 Codex 将 OTLP 日志发送给这个服务。如果 Codex 的遥测仍指向原来的 `8765` 服务，因此单独启动 `8766` 后不会自动获得新的 TPS。若以后要切换到独立服务，需在 Codex 配置中将现有 `[otel]` 导出地址改为 `http://127.0.0.1:8766/v1/logs` 并重启 Codex；切换后原 `8765` 服务将不再收到这些新遥测。项目不会自动修改此配置。
-
-## 支持范围与统计口径
-
-- 采集源目前是 **本机 Codex 会话和 Codex 遥测**。其他支持 MCP 的客户端可以查看这些数据，但不会自动统计它们自身的调用；普通 ChatGPT 网页或移动端的会话也不会自动纳入。要扩展采集范围，需要针对相应产品增加适配方式。
-- 三个时间范围按北京时间自然日计算并包含今天。输入 Token 已包含缓存读取，输出已包含推理 Token。
-- TPS 为一次已完成模型请求的输出 Token 数除以请求耗时，包含首字等待和推理时间，不包含请求之间的工具执行时间；它不是逐 Token 的实时速度。
-- 金额按各模型 API 标准文本价格分别计算后合计，是参考估算，不是实际订阅扣费或 API 账单。价格快照日期为 **2026-10-29**，不会自动更新；缺少价格的模型单独标记并不计入金额，工具费用等也未计入。
-- 采集服务只监听本机回环地址；SQLite 保存数量、模型、思考强度及会话和请求标识等统计信息，不有意保存提示词或模型回复。项目副本不包含原有数据库、凭据或会话记录。
-
-价格来源：[OpenAI API 定价](https://developers.openai.com/api/docs/pricing)、[Z.ai 定价](https://docs.z.ai/guides/overview/pricing)。
-
-## 文件与验证
-
-```text
-monitor.py                 本地采集服务
-plugin/server.py           标准 stdio MCP 服务
-plugin/ui/monitor.html     MCP Apps 面板与可选本地界面
-examples/mcp-client.json   需要填写本机路径的 MCP 配置示例
-tests/                     MCP 与端到端验证
-```
-
-运行测试：
+在项目根目录启动：
 
 ```sh
+python3 monitor.py --port 8765
+```
+
+打开 **[http://127.0.0.1:8765](http://127.0.0.1:8765/)**。服务会扫描 `~/.codex/sessions` 和 `~/.codex/archived_sessions`，将统计结果写入 `data/metrics.sqlite3`。
+
+**Token 统计可从已有会话重建；TPS 需要启用 Codex 遥测。** 按 [安装与配置](docs/getting-started.md#2-启用请求-tps) 合并 [OTLP JSON 配置](examples/codex-otel.toml)，重启 Codex 并完成一次新请求，即可开始采集请求计时。
+
+自定义端口、Codex 数据目录、数据备份和更新步骤均见 [完整使用文档](docs/getting-started.md)。
+
+## 接入 MCP
+
+采集服务独立运行，MCP 服务通过本机 HTTP 接口读取结果。
+
+1. 启动 `monitor.py`，确认浏览器可以打开本机面板。
+2. 参考 [MCP 客户端配置示例](examples/mcp-client.json)，将 `plugin/server.py` 改为本机实际绝对路径。
+3. 将配置合并到客户端的 MCP 设置；使用其他端口时，同步修改 `TOKEN_MONITOR_BACKEND_URL`。
+
+| 工具 | 用途 |
+| --- | --- |
+| `open_token_monitor` | 打开图形面板，需客户端支持 MCP Apps |
+| `get_token_usage` | 读取 Token、模型、TPS 与参考费用统计 |
+| `get_request_history` | 按时间范围、条数和游标读取请求计时记录 |
+
+支持通用 stdio MCP 交互；图形面板的显示取决于客户端的 MCP Apps 支持。不同客户端的配置位置和安装流程可能不同，详见 [MCP 接入说明](docs/getting-started.md#3-接入-mcp-客户端可选)。
+
+## 统计说明
+
+| 指标 | 计算口径 |
+| --- | --- |
+| 时间范围 | 按北京时间自然日统计；最近 7 日、30 日均包含今天 |
+| Token 总量 | 输入 + 输出；缓存读取已包含在输入中，推理已包含在输出中 |
+| 平均 TPS | 完整计时请求的总输出 Token ÷ 总耗时；包含首字等待与推理，排除请求间的工具耗时 |
+| API 参考费用 | 按模型分别估算后汇总；使用内置的 **2026-10-29** 标准文本价格快照，未知价格模型不计入合计 |
+
+费用是参考估算，不代表实际账单、订阅扣费或剩余额度；工具等其他收费项未计入。价格来源链接保留在 [OpenAI API 定价](https://developers.openai.com/api/docs/pricing) 与 [Z.ai 定价](https://docs.z.ai/guides/overview/pricing)，项目不会自动更新价格表。
+
+当前采集源是 **本机 Codex 会话与遥测**。其他 MCP 客户端可以查看这些数据，但不会自动采集其自身调用，也不包含普通 ChatGPT 网页或移动端会话。统计数据库保存数量、模型、思考强度和会话／请求标识等信息，不有意保存提示词或模型回复。
+
+## 文档
+
+| 我想…… | 从这里开始 |
+| --- | --- |
+| 安装、配置遥测、处理常见问题 | [安装与配置](docs/getting-started.md) |
+| 接入 MCP 或调整配置 | [MCP 示例](examples/mcp-client.json) · [遥测示例](examples/codex-otel.toml) |
+| 开发、测试、更新本机副本 | [贡献指南](CONTRIBUTING.md) |
+| 重新生成展示图 | [演示与截图](docs/screenshots/README.md) |
+| 了解版本变化 | [更新记录](CHANGELOG.md) |
+
+## 开发与贡献
+
+欢迎提交 Bug、功能建议、文档改进和 Pull Request。[贡献指南](CONTRIBUTING.md) 包含项目结构、开发约定及界面验证方式。
+
+```sh
+# Python 单元测试与 HTTP / MCP 端到端验证
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s . -p 'test_*.py'
 PYTHONDONTWRITEBYTECODE=1 python3 tests/integration_smoke.py
-```
 
-端到端测试使用临时端口、临时数据库和虚构会话数据，不修改现有服务或历史记录。
-
-如果安装了 Node.js，还可以验证界面在服务出错或无响应时的超时与重试行为（项目运行本身不需要 Node.js）：
-
-```sh
+# 界面脚本测试，需要 Node.js
 node --test tests/test_ui.js
 ```
 
-已发现问题、修复方式与本次验证范围见 [缺陷检查记录](docs/bug-audit-2026-10-30.md)。
+测试使用虚构数据、临时目录和临时端口。[GitHub Actions](.github/workflows/ci.yml) 配置了 Linux / macOS 的 Python 检查与 Node.js 界面测试。Node.js 仅用于开发验证及可选截图，运行项目无需 Node.js。
+
+[报告问题](https://github.com/shy3130/codex-token-monitor/issues/new/choose) · [提出改进](https://github.com/shy3130/codex-token-monitor/issues) · [查看贡献指南](CONTRIBUTING.md)
+
+## 许可证
+
+[MIT](LICENSE) © 2026 [shy3130](https://github.com/shy3130)

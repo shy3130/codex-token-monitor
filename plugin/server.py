@@ -9,7 +9,9 @@ import urllib.request
 from urllib.parse import urlsplit, urlencode
 
 ROOT = Path(__file__).resolve().parent
-URI = 'ui://token-monitor/panel.html'
+VERSION = json.loads((ROOT / 'plugin.json').read_text())['version']
+URI = f'ui://token-monitor/panel-v{VERSION}.html'
+LEGACY_URI = 'ui://token-monitor/panel.html'
 MIME = 'text/html;profile=mcp-app'
 ICONS = [{'src': 'data:image/png;base64,' + base64.b64encode((ROOT / 'assets/icon.png').read_bytes()).decode('ascii'),
           'mimeType': 'image/png', 'sizes': ['256x256']}]
@@ -90,7 +92,7 @@ def dispatch(method, params):
     if method == 'initialize':
         version = params.get('protocolVersion', '2025-06-18')
         return {'protocolVersion': version,
-            'serverInfo': {'name': 'token-monitor', 'version': '1.5.1', 'icons': ICONS},
+            'serverInfo': {'name': 'token-monitor', 'version': VERSION, 'icons': ICONS},
             'capabilities': {'tools': {}, 'resources': {}}}
     if method == 'ping':
         return {}
@@ -122,9 +124,10 @@ def dispatch(method, params):
     if method == 'resources/templates/list':
         return {'resourceTemplates': []}
     if method == 'resources/read':
-        if params.get('uri') != URI:
+        requested = params.get('uri')
+        if requested not in (URI, LEGACY_URI):
             raise ValueError('Unknown resource')
-        return {'contents': [{'uri': URI, 'mimeType': MIME,
+        return {'contents': [{'uri': requested, 'mimeType': MIME,
             'text': (ROOT / 'ui/monitor.html').read_text(),
             '_meta': {'ui': {'prefersBorder': False,
                 'csp': {'connectDomains': [], 'resourceDomains': []}}}}]}

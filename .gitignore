@@ -10,3 +10,4 @@ data/
 *.sqlite3-wal
 *.log
 backups/
+node_modules/

@@ -1,4 +1,5 @@
 import importlib.util
+import json
 import os
 from pathlib import Path
 import unittest
@@ -11,6 +12,16 @@ spec.loader.exec_module(server)
 
 
 class MCPProjectTests(unittest.TestCase):
+    def test_new_ui_resource_has_its_own_version_and_legacy_uri_still_works(self):
+        version = json.loads((ROOT / 'plugin/plugin.json').read_text())['version']
+        self.assertEqual(server.URI, f'ui://token-monitor/panel-v{version}.html')
+        self.assertNotEqual(server.URI, server.LEGACY_URI)
+        current = server.dispatch('resources/read', {'uri': server.URI})['contents'][0]
+        legacy = server.dispatch('resources/read', {'uri': server.LEGACY_URI})['contents'][0]
+        self.assertEqual(current['text'], legacy['text'])
+        self.assertIn('model-kpis', current['text'])
+        self.assertEqual(legacy['uri'], server.LEGACY_URI)
+
     def test_default_and_custom_backend_ports(self):
         with mock.patch.dict(os.environ, {}, clear=True):
             self.assertEqual(server.backend_stats_url(), 'http://127.0.0.1:8765/api/stats')

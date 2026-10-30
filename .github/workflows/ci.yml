@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    name: Python ${{ matrix.python }} / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python: '3.9'
+          - os: ubuntu-latest
+            python: '3.13'
+          - os: macos-latest
+            python: '3.13'
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Python unit tests
+        run: python -m unittest discover -s . -p 'test_*.py'
+      - name: HTTP and stdio MCP integration
+        run: python tests/integration_smoke.py
+      - name: Demo command
+        run: python scripts/demo.py --help
+
+  ui:
+    name: UI scripts / Node.js 22
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Refresh, pagination and display tests
+        run: node --test tests/test_ui.js

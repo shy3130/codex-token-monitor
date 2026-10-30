@@ -20,7 +20,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 
 ROOT = Path(__file__).resolve().parent
-VERSION = '1.5.1'
+VERSION = '1.5.2'
 TZ = dt.timezone(dt.timedelta(hours=8))
 
 
@@ -262,6 +262,16 @@ class Store:
             SUM(input) input, SUM(cached) cached, SUM(output) output,
             SUM(reasoning) reasoning, SUM(input)+SUM(output) total FROM usage
             WHERE ts>=? AND ts<? GROUP BY model ORDER BY total DESC''', (since, until))]
+        model_speeds = {r['model']: dict(r) for r in self.db.execute('''
+            SELECT model, COUNT(*) samples, SUM(output) tokens, SUM(duration_ms) ms
+            FROM speed WHERE ts>=? AND ts<? AND duration_ms>0 GROUP BY model''',
+            (since, until))}
+        for model in models:
+            measured = model_speeds.get(model['model'], dict(samples=0, tokens=0, ms=0)).copy()
+            measured.pop('model', None)
+            measured['tps'] = measured['tokens'] * 1000 / measured['ms'] if measured['ms'] else None
+            model['speed_summary'] = measured
+            model['token_share'] = model['total'] / summary['total'] if summary['total'] else 0
         priced, unpriced, dollars = 0, 0, 0.0
         model_costs, model_long = {}, {}
         for r in self.db.execute('''SELECT model, input>272000 long_context,

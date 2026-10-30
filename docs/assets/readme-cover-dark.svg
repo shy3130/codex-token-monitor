@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="280" viewBox="0 0 1280 280" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Codex Token Monitor</title>
+  <desc id="desc">Local token usage, model throughput and API cost estimates. A local dashboard built with the Python standard library.</desc>
+  <rect x=".5" y=".5" width="1279" height="279" rx="18" fill="#181B24" stroke="#303747"/>
+  <path d="M865 55V231M929 55V231M993 55V231M1057 55V231M1121 55V231M1185 55V231M843 99H1223M843 143H1223M843 187H1223M843 231H1223" stroke="#303747"/>
+  <rect x="48" y="47" width="40" height="40" rx="12" fill="#303B5B"/>
+  <path d="M59 75V68M65 75V62M71 75V58M77 75V65" stroke="#A9B9FF" stroke-width="2.2" stroke-linecap="round"/>
+  <text x="104" y="73" fill="#A9B9FF" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" font-size="15" font-weight="600">A local dashboard for Codex</text>
+  <text x="46" y="148" fill="#EDF0FA" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" font-size="52" font-weight="700" letter-spacing="-1.8">Codex Token Monitor</text>
+  <text x="49" y="188" fill="#BEC7DA" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" font-size="20">Token usage. Model throughput. API cost estimates.</text>
+  <text x="49" y="235" fill="#9DA9BF" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" font-size="14">Python standard library</text>
+  <circle cx="220" cy="230" r="2" fill="#66748F"/>
+  <text x="235" y="235" fill="#9DA9BF" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" font-size="14">Local SQLite</text>
+  <circle cx="333" cy="230" r="2" fill="#66748F"/>
+  <text x="348" y="235" fill="#9DA9BF" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" font-size="14">MCP Apps</text>
+  <g>
+    <path d="M853 206A4 4 0 0 1 857 202H873A4 4 0 0 1 877 206V231H853V206Z" fill="#536A9F"/>
+    <path d="M897 169A4 4 0 0 1 901 165H917A4 4 0 0 1 921 169V231H897V169Z" fill="#536A9F"/>
+    <path d="M941 188A4 4 0 0 1 945 184H961A4 4 0 0 1 965 188V231H941V188Z" fill="#536A9F"/>
+    <path d="M985 125A4 4 0 0 1 989 121H1005A4 4 0 0 1 1009 125V231H985V125Z" fill="#536A9F"/>
+    <path d="M1029 150A4 4 0 0 1 1033 146H1049A4 4 0 0 1 1053 150V231H1029V150Z" fill="#536A9F"/>
+    <path d="M1073 86A4 4 0 0 1 1077 82H1093A4 4 0 0 1 1097 86V231H1073V86Z" fill="#536A9F"/>
+    <path d="M1117 113A4 4 0 0 1 1121 109H1137A4 4 0 0 1 1141 113V231H1117V113Z" fill="#536A9F"/>
+    <path d="M1161 63A4 4 0 0 1 1165 59H1181A4 4 0 0 1 1185 63V231H1161V63Z" fill="#536A9F"/>
+    <path d="M853 202H877V214H853ZM897 165H921V185H897ZM941 184H965V199H941ZM985 121H1009V156H985ZM1029 146H1053V173H1029ZM1073 82H1097V126H1073ZM1117 109H1141V146H1117ZM1161 59H1185V114H1161Z" fill="#99AEFF"/>
+    <path d="M853 202H877V205H853ZM897 165H921V169H897ZM941 184H965V188H941ZM985 121H1009V126H985ZM1029 146H1053V151H1029ZM1073 82H1097V88H1073ZM1117 109H1141V115H1117ZM1161 59H1185V66H1161Z" fill="#7CCFC0"/>
+  </g>
+</svg>

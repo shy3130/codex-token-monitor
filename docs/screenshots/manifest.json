@@ -1,0 +1,51 @@
+{
+  "version": "1.5.2",
+  "capturedAt": "2026-10-30T08:04:56.285Z",
+  "data": "synthetic",
+  "uiSource": {
+    "path": "plugin/ui/monitor.html",
+    "sha256": "7cc68ab267614b567f6caefd69c2123a1f1724032630a6c8d3f3f5f38f56792a"
+  },
+  "images": {
+    "dashboard-v1.5.2-overview-light.png": {
+      "width": 1440,
+      "height": 1099,
+      "sha256": "858800e7c447e0e5caa4d13d92f2a7fe3f7fa7857c37e56a200c2bc7139c7e23"
+    },
+    "dashboard-v1.5.2-light.png": {
+      "width": 1440,
+      "height": 1707,
+      "sha256": "6c0452e927b614d51c2bc837a8bc112a8d457381c4ae11635619e8400facb14d"
+    },
+    "dashboard-v1.5.2-dark.png": {
+      "width": 1440,
+      "height": 1707,
+      "sha256": "eaea2a9819d9f272aee85c9252a1616018830fce0011efb81167dd145a4f7733"
+    },
+    "dashboard-v1.5.2-overview-dark.png": {
+      "width": 1440,
+      "height": 1099,
+      "sha256": "4c575c532a6d02b520cf2e85dc388d5e8e78e45c8ce46c16ee37397b96dab23e"
+    },
+    "dashboard-v1.5.2-mobile.png": {
+      "width": 390,
+      "height": 1992,
+      "sha256": "aa2773d167890058c54aa983014f997145b314a4255df6c7e989a413779e2670"
+    },
+    "models-v1.5.2-light.png": {
+      "width": 733,
+      "height": 683,
+      "sha256": "11ed6336facf442dcfbd3d21ce6bf04d41185b45aafa17da023dd520087f33fe"
+    },
+    "models-v1.5.2-dark.png": {
+      "width": 733,
+      "height": 683,
+      "sha256": "8adce33c514a2d134fe064b8b45cd1f9abd1a05bc86e926146826345e8f1d465"
+    },
+    "models-v1.5.2-mobile.png": {
+      "width": 326,
+      "height": 725,
+      "sha256": "10863baebeb98d63d760ec9eac75bcb7b4e512e1dec6e3bab13f56d83a30c535"
+    }
+  }
+}

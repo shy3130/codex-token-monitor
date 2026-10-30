@@ -76,6 +76,9 @@ def main():
             assert data['today']['requests'] == 1 and data['today']['total'] == 1100
             assert abs(data['latest']['tps'] - 50) < .01
             assert data['latest']['effort'] == 'xhigh'
+            model = data['periods']['today']['models'][0]
+            assert model['speed_summary']['tps'] == 50 and model['speed_summary']['samples'] == 1
+            assert model['token_share'] == 1
             with opener.open(base + '/api/requests?period=today&limit=10', timeout=2) as response:
                 history = json.load(response)
             assert history['total'] == 1 and history['records'][0]['effort'] == 'xhigh'
@@ -88,7 +91,8 @@ def main():
                 {'jsonrpc': '2.0', 'id': 2, 'method': 'tools/call',
                  'params': {'name': 'get_token_usage', 'arguments': {}}},
                 {'jsonrpc': '2.0', 'id': 3, 'method': 'resources/read',
-                 'params': {'uri': 'ui://token-monitor/panel.html'}},
+                 'params': {'uri': 'ui://token-monitor/panel-v' +
+                     json.loads((ROOT / 'plugin/plugin.json').read_text())['version'] + '.html'}},
                 {'jsonrpc': '2.0', 'id': 4, 'method': 'tools/call',
                  'params': {'name': 'get_request_history', 'arguments': {'period': 'today', 'limit': 10}}},
             ]
@@ -97,6 +101,7 @@ def main():
                 input=('\n'.join(map(json.dumps, mcp_requests)) + '\n').encode(), env=env, timeout=5)
             replies = {item['id']: item['result'] for item in map(json.loads, raw.splitlines())}
             assert replies[2]['structuredContent']['today']['total'] == 1100
+            assert replies[2]['structuredContent']['periods']['today']['models'][0]['speed_summary']['tps'] == 50
             assert replies[3]['contents'][0]['mimeType'] == 'text/html;profile=mcp-app'
             assert replies[4]['structuredContent']['records'][0]['tps'] == 50
             print('OK: standalone collector, synthetic telemetry, UI and stdio MCP client')

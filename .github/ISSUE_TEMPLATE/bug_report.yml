@@ -1,0 +1,33 @@
+name: 问题反馈
+description: 报告采集、统计、MCP 或界面问题。
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: 请使用虚构数据复现；提交前移除日志和截图中的个人信息、访问令牌及真实会话内容。
+  - type: input
+    id: environment
+    attributes:
+      label: 运行环境
+      description: 操作系统、Python 版本、项目版本；使用 MCP 时请附客户端名称及版本。
+      placeholder: macOS / Python 3.13 / Codex Token Monitor 1.5.1
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      description: 包括启动方式、是否配置遥测，以及发生问题前的具体操作。
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 预期结果与实际结果
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: 补充信息
+      description: 可附已脱敏的报错、截图或最小虚构样本。

@@ -1,6 +1,6 @@
 {
   "name": "token-monitor",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "按模型查看本机 Codex Token、TPS、思考强度和 API 参考费用。",
   "mcpServers": "./.mcp.json",
   "requires_local_executor": true,

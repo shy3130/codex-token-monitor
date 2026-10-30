@@ -210,6 +210,47 @@ class MonitorTests(unittest.TestCase):
         self.assertIsNone(p['coverage']['first_record'])
         self.assertIsNone(p['speed_summary']['tps'])
 
+    def test_model_tps_uses_own_complete_timings_and_selected_period(self):
+        now = dt.datetime(2026, 10, 29, 12, tzinfo=m.TZ)
+        cases = [
+            ('a-fast', 'model-a', '2026-10-29T02:00:00Z', 1, 100),
+            ('a-slow', 'model-a', '2026-10-29T02:01:00Z', 30, 900),
+            ('b-only', 'model-b', '2026-10-29T02:02:00Z', 2, 100),
+            ('a-old', 'model-a', '2026-10-28T02:00:00Z', 9, 900),
+            ('a-incomplete', 'model-a', '2026-10-29T02:03:00Z', None, 500),
+        ]
+        for thread, model, stamp, seconds, out in cases:
+            end = dt.datetime.fromisoformat(stamp.replace('Z', '+00:00'))
+            self.store.add_usage(thread, thread, 'turn', end.timestamp(), model,
+                                 dict(input_tokens=1000, output_tokens=out))
+            records = [otel('codex.sse_event', end.isoformat(), model=model,
+                           **{'conversation.id': thread, 'event.kind': 'response.completed',
+                              'input_token_count': 1000, 'output_token_count': out})]
+            if seconds is not None:
+                records.insert(0, otel('codex.websocket_request',
+                    (end-dt.timedelta(seconds=seconds)).isoformat(), model=model,
+                    success='true', **{'conversation.id': thread}))
+            self.store.ingest(payload(*records))
+        periods = self.store.snapshot(now=now)['periods']
+        today = {row['model']: row for row in periods['today']['models']}
+        week = {row['model']: row for row in periods['7d']['models']}
+        self.assertEqual(today['model-a']['speed_summary']['samples'], 2)
+        self.assertEqual(today['model-a']['speed_summary']['tokens'], 1000)
+        self.assertAlmostEqual(today['model-a']['speed_summary']['tps'], 1000/31)
+        self.assertEqual(today['model-b']['speed_summary']['tps'], 50)
+        self.assertEqual(week['model-a']['speed_summary']['samples'], 3)
+        self.assertEqual(week['model-a']['speed_summary']['tps'], 1900/40)
+        self.assertAlmostEqual(sum(row['token_share'] for row in today.values()), 1)
+        self.assertEqual(today['model-a']['total'], 4500)
+
+    def test_model_without_timing_or_with_zero_tokens_has_no_invented_speed(self):
+        now = dt.datetime(2026, 10, 29, 12, tzinfo=m.TZ)
+        self.store.add_usage('zero', 'thread', 'turn', m.epoch('2026-10-29T02:00:00Z'),
+                             'model', dict(input_tokens=0, output_tokens=0))
+        model = self.store.snapshot(now=now)['periods']['today']['models'][0]
+        self.assertEqual(model['speed_summary'], dict(samples=0, tokens=0, ms=0, tps=None))
+        self.assertEqual(model['token_share'], 0)
+
     def test_reasoning_effort_is_backfilled_and_matched_to_the_same_request(self):
         scanner = m.Scanner(self.store, [])
         state = dict(thread='thread-test', model='model', turn='', effort=None,

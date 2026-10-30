@@ -1,0 +1,9 @@
+# Merge into the user-level Codex config.toml, then restart Codex.
+# Edit existing otel/exporter entries instead of creating duplicate TOML tables.
+# The port must match monitor.py --port. This collector accepts OTLP JSON only.
+[otel]
+log_user_prompt = false
+
+[otel.exporter."otlp-http"]
+endpoint = "http://127.0.0.1:8765/v1/logs"
+protocol = "json"
