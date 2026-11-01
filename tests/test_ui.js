@@ -169,6 +169,44 @@ test('small model costs retain precision and missing backend fields degrade clea
   assert.doesNotMatch(markup, /NaN|undefined/);
 });
 
+test('token abbreviations use decimal K, M, B and T consistently in both languages', () => {
+  for (const locale of ['zh-CN', 'en-US', 'en-GB']) {
+    const app = boot(async () => new Promise(() => {}), { locale });
+    const format = value => vm.runInContext(`compact(${JSON.stringify(value)})`, app.context);
+    for (const [value, expected] of [[0, '0'], [999, '999'], [1000, '1.0K'],
+      [1500, '1.5K'], [10000, '10.0K'], [1000000, '1.00M'],
+      [1000000000, '1.000B'], [1234567890, '1.235B'], [1500000000, '1.500B'],
+      [1000000000000, '1.00T'], [2345678900000, '2.35T'],
+      [1000000000000000, '1.00E15'], ['1500000000', '1.500B']]) {
+      assert.equal(format(value), expected, `${locale}: ${value}`);
+    }
+  }
+});
+
+test('rounded token values promote units rather than rendering 1000K, 1000M or 1000B', () => {
+  const app = boot(async () => new Promise(() => {}));
+  for (const [value, expected] of [[999949, '999.9K'], [999950, '1.00M'],
+    [999994999, '999.99M'], [999995000, '1.000B'],
+    [999995000000, '999.995B'], [999999499999, '999.999B'],
+    [999999500000, '1.00T'],
+    [999994999999999, '999.99T'], [999995000000000, '1.00E15']]) {
+    assert.equal(vm.runInContext(`compact(${value})`, app.context), expected, String(value));
+  }
+});
+
+test('overview and model token breakdowns share abbreviations and keep exact hover values', () => {
+  const app = boot(async () => new Promise(() => {}));
+  app.context.setNumber('total', 1500000000);
+  assert.equal(app.elements.get('total').textContent, '1.500B');
+  assert.equal(app.elements.get('total').title, '1,500,000,000');
+  const markup = app.context.modelMarkup({ model: 'test', total: 1500000000,
+    requests: 1, input: 1200000000, output: 300000000, cached: 1000000000, reasoning: 200000000 });
+  assert.match(markup, /title="1,500,000,000 tokens">1\.500B/);
+  assert.match(markup, /title="1,200,000,000 tokens">1\.200B/);
+  assert.match(markup, /title="1,000,000,000 tokens">1\.000B/);
+  assert.doesNotMatch(markup, /1,500\.00M|1,200\.00M|1,000\.00M/);
+});
+
 test('English browser locale translates model details, request metadata and empty timing', () => {
   const app = boot(async () => new Promise(() => {}), { locale: 'en-GB' });
   const model = app.context.modelMarkup({ model: '<unknown>', requests: 1, total: 1200,

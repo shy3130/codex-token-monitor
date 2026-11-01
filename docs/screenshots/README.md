@@ -1,19 +1,19 @@
 # 界面截图
 
-以下截图由当前 **v1.6.0** 源码重新运行生成。桌面主图会展开“模型使用与费用”，直接显示每个模型的 **Token 总量、API 参考费用和平均 TPS**。页面底部保留界面版本号。
+以下截图由当前 **v1.6.1** 源码重新运行生成。桌面主图会展开“模型使用与费用”，直接显示每个模型的 **Token 总量、API 参考费用和平均 TPS**。页面底部保留界面版本号。
 
 所有图均使用 `scripts/demo.py` 生成的虚构数据，不包含真实会话、用户标识或账单。图片文件名包含版本号，避免与旧截图混用。
 
 | 文件 | 展示内容 |
 | --- | --- |
-| [dashboard-v1.6.0-light.png](dashboard-v1.6.0-light.png) | 浅色桌面主页，展开新版模型三列指标 |
-| [dashboard-v1.6.0-dark.png](dashboard-v1.6.0-dark.png) | 同一布局的深色主题 |
-| [dashboard-v1.6.0-overview-light.png](dashboard-v1.6.0-overview-light.png) | 浅色总览，模型明细默认收起 |
-| [dashboard-v1.6.0-overview-dark.png](dashboard-v1.6.0-overview-dark.png) | 深色总览，模型明细默认收起 |
-| [models-v1.6.0-light.png](models-v1.6.0-light.png) | 浅色模型明细特写 |
-| [models-v1.6.0-dark.png](models-v1.6.0-dark.png) | 深色模型明细特写 |
-| [models-v1.6.0-mobile.png](models-v1.6.0-mobile.png) | 390 像素窄屏中的模型明细 |
-| [dashboard-v1.6.0-mobile.png](dashboard-v1.6.0-mobile.png) | 窄屏单列完整页面 |
+| [dashboard-v1.6.1-light.png](dashboard-v1.6.1-light.png) | 浅色桌面主页，展开新版模型三列指标 |
+| [dashboard-v1.6.1-dark.png](dashboard-v1.6.1-dark.png) | 同一布局的深色主题 |
+| [dashboard-v1.6.1-overview-light.png](dashboard-v1.6.1-overview-light.png) | 浅色总览，模型明细默认收起 |
+| [dashboard-v1.6.1-overview-dark.png](dashboard-v1.6.1-overview-dark.png) | 深色总览，模型明细默认收起 |
+| [models-v1.6.1-light.png](models-v1.6.1-light.png) | 浅色模型明细特写 |
+| [models-v1.6.1-dark.png](models-v1.6.1-dark.png) | 深色模型明细特写 |
+| [models-v1.6.1-mobile.png](models-v1.6.1-mobile.png) | 390 像素窄屏中的模型明细 |
+| [dashboard-v1.6.1-mobile.png](dashboard-v1.6.1-mobile.png) | 窄屏单列完整页面 |
 
 另外生成带 `-en-` 的六张英文截图（桌面浅深色、模型明细浅深色、模型明细窄屏、完整窄屏），供英文 README 使用。
 

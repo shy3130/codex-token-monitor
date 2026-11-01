@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-1.6.0-5267CB?style=flat-square" alt="Version 1.6.0"></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-1.6.1-5267CB?style=flat-square" alt="Version 1.6.1"></a>
   <img src="https://img.shields.io/badge/Python-3.9%2B-3776AB?style=flat-square&amp;logo=python&amp;logoColor=white" alt="Python 3.9+">
   <img src="https://img.shields.io/badge/dependencies-standard_library-3D9D91?style=flat-square" alt="Python standard library only">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-64748B?style=flat-square" alt="MIT license"></a>
@@ -26,11 +26,11 @@
 The collector and MCP server use the **Python standard library**. Statistics stay in a local SQLite database. Open the dashboard in a browser or connect it to a client that supports stdio MCP.
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/dashboard-v1.6.0-en-dark.png">
-  <img src="docs/screenshots/dashboard-v1.6.0-en-light.png" width="1440" alt="v1.6.0 dashboard with expanded per-model tokens, API cost estimates and average TPS">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/dashboard-v1.6.1-en-dark.png">
+  <img src="docs/screenshots/dashboard-v1.6.1-en-light.png" width="1440" alt="v1.6.1 dashboard with expanded per-model tokens, API cost estimates and average TPS">
 </picture>
 
-<p align="center"><sub>v1.6.0 application UI · Expanded model metrics · Synthetic demo data</sub></p>
+<p align="center"><sub>v1.6.1 application UI · Expanded model metrics · Synthetic demo data</sub></p>
 
 ## Features
 
@@ -47,18 +47,18 @@ The collector and MCP server use the **Python standard library**. Statistics sta
 Three aligned metrics make tokens, estimated cost and throughput easy to compare. Token composition appears underneath, with unit prices available on demand. Missing prices and incomplete timing are marked explicitly.
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/models-v1.6.0-en-dark.png">
-  <img src="docs/screenshots/models-v1.6.0-en-light.png" width="734" alt="Model comparison with total tokens, estimated API cost, average TPS and token composition">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/models-v1.6.1-en-dark.png">
+  <img src="docs/screenshots/models-v1.6.1-en-light.png" width="734" alt="Model comparison with total tokens, estimated API cost, average TPS and token composition">
 </picture>
 
 <details>
 <summary><strong>Narrow-screen preview</strong> — A single-column dashboard with three-column model metrics</summary>
 
 <p align="center">
-  <img src="docs/screenshots/models-v1.6.0-en-mobile.png" width="326" alt="Model metrics displayed on a 390-pixel viewport">
+  <img src="docs/screenshots/models-v1.6.1-en-mobile.png" width="326" alt="Model metrics displayed on a 390-pixel viewport">
 </p>
 
-Full pages: [Narrow-screen dashboard](docs/screenshots/dashboard-v1.6.0-en-mobile.png) · [Dark desktop](docs/screenshots/dashboard-v1.6.0-en-dark.png)
+Full pages: [Narrow-screen dashboard](docs/screenshots/dashboard-v1.6.1-en-mobile.png) · [Dark desktop](docs/screenshots/dashboard-v1.6.1-en-dark.png)
 
 </details>
 
@@ -120,6 +120,7 @@ Choose **中文** or **English** in the footer to override automatic detection. 
 | --- | --- |
 | Time ranges | Beijing calendar days; 7-day and 30-day ranges include today |
 | Total tokens | Input + output; cached tokens are included in input, and reasoning tokens in output |
+| Abbreviations | Decimal K (thousand), M (million), B (billion), T (trillion); larger counts use scientific notation. Calculations use raw counts |
 | Average TPS | Total output tokens from fully timed requests ÷ their total duration, including initial wait and reasoning, excluding tools between requests |
 | Estimated API cost | Calculated per model from the bundled **2026-10-29** standard text-token price snapshot; models without a known price are excluded from the sum |
 

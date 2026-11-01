@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-1.6.0-5267CB?style=flat-square" alt="版本 1.6.0"></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-1.6.1-5267CB?style=flat-square" alt="版本 1.6.1"></a>
   <img src="https://img.shields.io/badge/Python-3.9%2B-3776AB?style=flat-square&amp;logo=python&amp;logoColor=white" alt="Python 3.9 及以上">
   <img src="https://img.shields.io/badge/dependencies-standard_library-3D9D91?style=flat-square" alt="运行仅依赖 Python 标准库">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-64748B?style=flat-square" alt="MIT 许可证"></a>
@@ -26,11 +26,11 @@
 采集服务与 MCP 服务均使用 **Python 标准库**，统计数据保存在本地 SQLite；可直接在浏览器查看，也可接入支持 stdio MCP 的客户端。
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/dashboard-v1.6.0-dark.png">
-  <img src="docs/screenshots/dashboard-v1.6.0-light.png" width="1440" alt="v1.6.0 桌面总览：展开各模型的 Token、API 参考费用与平均 TPS，右侧为请求记录">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/dashboard-v1.6.1-dark.png">
+  <img src="docs/screenshots/dashboard-v1.6.1-light.png" width="1440" alt="v1.6.1 桌面总览：展开各模型的 Token、API 参考费用与平均 TPS，右侧为请求记录">
 </picture>
 
-<p align="center"><sub>v1.6.0 实际界面 · 模型明细已展开 · 截图使用虚构演示数据</sub></p>
+<p align="center"><sub>v1.6.1 实际界面 · 模型明细已展开 · 截图使用虚构演示数据</sub></p>
 
 ## 功能
 
@@ -47,18 +47,18 @@
 主指标直接对齐展示，输入、输出、缓存和推理放在下一层。标准单价可按需展开；没有价格或完整计时的项目会明确标注。
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/models-v1.6.0-dark.png">
-  <img src="docs/screenshots/models-v1.6.0-light.png" width="734" alt="模型明细：Token 总量、API 参考费用与平均 TPS 三列对齐，下方列出 Token 构成">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/models-v1.6.1-dark.png">
+  <img src="docs/screenshots/models-v1.6.1-light.png" width="734" alt="模型明细：Token 总量、API 参考费用与平均 TPS 三列对齐，下方列出 Token 构成">
 </picture>
 
 <details>
 <summary><strong>查看窄屏布局</strong> — 单列总览与调用记录，保留三列模型主指标</summary>
 
 <p align="center">
-  <img src="docs/screenshots/models-v1.6.0-mobile.png" width="326" alt="390 像素窄屏中的模型明细，三列主指标完整可见">
+  <img src="docs/screenshots/models-v1.6.1-mobile.png" width="326" alt="390 像素窄屏中的模型明细，三列主指标完整可见">
 </p>
 
-完整页面：[窄屏总览](docs/screenshots/dashboard-v1.6.0-mobile.png) · [深色桌面](docs/screenshots/dashboard-v1.6.0-dark.png)
+完整页面：[窄屏总览](docs/screenshots/dashboard-v1.6.1-mobile.png) · [深色桌面](docs/screenshots/dashboard-v1.6.1-dark.png)
 
 </details>
 
@@ -120,6 +120,7 @@ python3 monitor.py --port 8765
 | --- | --- |
 | 时间范围 | 按北京时间自然日统计；最近 7 日、30 日均包含今天 |
 | Token 总量 | 输入 + 输出；缓存读取已包含在输入中，推理已包含在输出中 |
+| 数量缩写 | 按 1000 进位：K（千）、M（百万）、B（十亿）、T（万亿）；更大数量使用科学计数法，计算与完整数值不受缩写影响 |
 | 平均 TPS | 完整计时请求的总输出 Token ÷ 总耗时；包含首字等待与推理，排除请求间的工具耗时 |
 | API 参考费用 | 按模型分别估算后汇总；使用内置的 **2026-10-29** 标准文本价格快照，未知价格模型不计入合计 |
 

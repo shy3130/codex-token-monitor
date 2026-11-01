@@ -77,7 +77,7 @@ html[data-theme=light]{color-scheme:light;--page:#f6f7fb;--surface:#fff;--ink:#2
 
 /* Compact language selection stays beside the measurement notes. */
 .footer{flex-wrap:wrap}.footer-tools{flex-wrap:wrap;gap:10px}.language-control select{font:inherit;font-size:10px;max-width:100px;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:4px 5px;cursor:pointer}.language-control select:focus-visible{outline:2px solid var(--brand);outline-offset:2px}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.method p{margin:0 0 6px}.estimate-title b{font-weight:650}
-@media(max-width:560px){html[lang^=en] .overview-label h2{font-size:12px}html[lang^=en] .periods button{padding:5px 6px}.history-toolbar{gap:6px}.model-kpi-note{overflow-wrap:anywhere}.count,.samples{white-space:normal}}
+@media(max-width:560px){.hero{flex-wrap:wrap}.hero .rate{margin-left:auto}html[lang^=en] .overview-label h2{font-size:12px}html[lang^=en] .periods button{padding:5px 6px}.history-toolbar{gap:6px}.model-kpi-note{overflow-wrap:anywhere}.count,.samples{white-space:normal}}
 </style>
 </head>
 <body><main class="app">
@@ -103,8 +103,8 @@ html[data-theme=light]{color-scheme:light;--page:#f6f7fb;--surface:#fff;--ink:#2
 </div>
 <section class="surface section requests-card" aria-labelledby="requestsTitle" id="historyCard"><div class="section-heading"><div><h2 id="requestsTitle" data-i18n="requestHistory">Request history</h2><p data-i18n="historySubtitle">Duration and speed of each model request</p></div><span class="request-count" id="historyCount">Loading</span></div><div class="history-toolbar"><span data-i18n="historyToolbar">Request timing &amp; output speed</span><label><span data-i18n="perPage">Per page</span><select id="pageSize" data-i18n-label="pageSize" aria-label="Records per page"><option value="10">10</option><option value="20">20</option><option value="50">50</option></select><span data-i18n="recordsSuffix"></span></label></div><ul class="list" id="requests"></ul><nav class="pager" data-i18n-label="pagination" aria-label="Request history pages"><span class="pager-label" id="pageInfo">Page 1</span><div class="pager-actions"><button id="firstPage" disabled data-i18n="latestPage">Latest</button><button id="prevPage" disabled data-i18n="previousPage">Previous</button><button id="nextPage" disabled data-i18n="nextPage">Next</button></div></nav><div class="history-status" id="historyStatus" role="status">Loading requests in this range…</div></section>
 </div>
-<footer class="footer"><div class="footer-tools"><button class="method-button" id="methodButton" aria-expanded="false" data-i18n="methodButton">How it’s measured ⓘ</button><label class="language-control"><span class="sr-only" data-i18n="languageLabel">Interface language</span><select id="language" data-i18n-label="languageLabel" aria-label="Interface language"><option value="auto" data-i18n="languageAuto">Auto</option><option value="zh">中文</option><option value="en">English</option></select></label><span class="build-version">v1.6.0</span></div><span id="updated">Saved locally · Auto-refresh</span></footer>
-<div class="method" id="method"><p data-i18n="methodRange"></p><p data-i18n="methodMetrics"></p><p data-i18n="methodSource"></p></div>
+<footer class="footer"><div class="footer-tools"><button class="method-button" id="methodButton" aria-expanded="false" data-i18n="methodButton">How it’s measured ⓘ</button><label class="language-control"><span class="sr-only" data-i18n="languageLabel">Interface language</span><select id="language" data-i18n-label="languageLabel" aria-label="Interface language"><option value="auto" data-i18n="languageAuto">Auto</option><option value="zh">中文</option><option value="en">English</option></select></label><span class="build-version">v1.6.1</span></div><span id="updated">Saved locally · Auto-refresh</span></footer>
+<div class="method" id="method"><p data-i18n="methodRange"></p><p data-i18n="methodUnits"></p><p data-i18n="methodMetrics"></p><p data-i18n="methodSource"></p></div>
 </main><script>
 'use strict';
 const $=id=>document.getElementById(id);
@@ -131,6 +131,7 @@ const messages={
   loadingRange:['正在读取所选范围的请求记录…','Loading requests in this range…'],methodButton:['统计口径 ⓘ','How it’s measured ⓘ'],
   languageLabel:['界面语言','Interface language'],languageAuto:['跟随环境','Auto'],savedAuto:['本机保存 · 自动刷新','Saved locally · Auto-refresh'],
   methodRange:['今日从北京时间 00:00 开始；最近 7 日、30 日包含今天，按自然日统计。','Today starts at 00:00 Beijing time (UTC+8). The 7-day and 30-day ranges include today and use calendar days.'],
+  methodUnits:['Token 缩写按 1000 进位：1K = 1,000，1M = 1,000,000，1B = 1,000,000,000，1T = 1,000,000,000,000；更大数值使用科学计数法。缩写仅用于展示，计算使用原始数量。','Token abbreviations use powers of 1,000: 1K = 1,000, 1M = 1,000,000, 1B = 1,000,000,000 and 1T = 1,000,000,000,000. Larger values use scientific notation. Abbreviations are for display; calculations use raw counts.'],
   methodMetrics:['输入已包含缓存，输出已包含推理，不重复相加。平均 TPS = 范围内完整计时请求的总输出 token ÷ 对应总耗时，包含首字等待和推理，排除请求间的工具耗时。API 参考折算使用标示日期的标准输入、缓存读取和输出价格，部分 OpenAI 模型每次输入超过 272K 时按长上下文价计算；未包含缓存写入、工具费、服务等级差异和价格待确认的模型，不代表实际支出或订阅额度。','Cached tokens are included in input; reasoning tokens are included in output. Average TPS = total output tokens of fully timed requests ÷ their total duration, including initial wait and reasoning, excluding tools between requests. API estimates use the dated standard input, cached-input and output prices. Some OpenAI models use long-context rates above 272K input tokens per request. Cache writes, tool fees, service-tier differences and unpriced models are excluded. Estimates are not actual spending or subscription allowances.'],
   methodSource:['思考强度来自本机会话记录；无法可靠匹配时显示“未记录”。无记录日期仅表示本机没有可用记录，用量不代表账单或订阅剩余额度。','Reasoning effort comes from matched local session records; unmatched requests show “Not recorded”. A day without records means no local data is available. Usage is not an invoice or a remaining subscription allowance.'],
   connecting:['连接中','Connecting'],synced:['已同步','Synced'],disconnected:['连接中断','Disconnected'],
@@ -188,7 +189,21 @@ function readPreference(){let value;try{value=window.openai?.widgetState?.langua
 let languagePreference=readPreference(),localeObserver=null;
 function resolvedLocale(){const value=languagePreference==='auto'?(hostLocale||toolLocale||validLocale(navigator.language)||'en-US'):(languagePreference==='zh'?'zh-CN':'en-US');return /^zh(?:-|$)/i.test(value)?'zh-CN':/^en(?:-|$)/i.test(value)?value:'en-US'}
 const full=n=>numberFormat.format(Number(n||0));
-const compact=n=>n>=1e6?decimal(n/1e6,2)+'M':n>=1e4?decimal(n/1e3,1)+'K':full(n);
+const compactUnits=[{scale:1e3,suffix:'K',digits:1},{scale:1e6,suffix:'M',digits:2},{scale:1e9,suffix:'B',digits:3},{scale:1e12,suffix:'T',digits:2}];
+function compact(value){
+  const n=Number(value??0);
+  if(!Number.isFinite(n)||n<0)return '—';
+  if(n<1e3)return full(n);
+  let index=0;
+  while(index<compactUnits.length-1&&n>=compactUnits[index+1].scale)index++;
+  let unit=compactUnits[index];
+  // Promote based on the displayed precision, so rounding cannot leave 1000.00M.
+  if(Math.round(n/unit.scale*10**unit.digits)>=1000*10**unit.digits){
+    if(index===compactUnits.length-1)return new Intl.NumberFormat(locale,{notation:'scientific',minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:false}).format(n);
+    unit=compactUnits[index+1];
+  }
+  return decimal(n/unit.scale,unit.digits)+unit.suffix;
+}
 function decimal(n,digits){if(!decimalFormats.has(digits))decimalFormats.set(digits,new Intl.NumberFormat(locale,{minimumFractionDigits:digits,maximumFractionDigits:digits}));return decimalFormats.get(digits).format(n)}
 const clock=s=>timeFormat.format(new Date(s*1000)),day=s=>dayFormat.format(new Date(s*1000));
 function uiError(key){const error=Error(t(key));error.i18nKey=key;return error}
@@ -224,7 +239,7 @@ function rpc(method,params){return new Promise((resolve,reject)=>{const id=++ser
 window.addEventListener('message',event=>{if(event.source!==window.parent)return;const msg=event.data;if(!msg||msg.jsonrpc!=='2.0')return;if(msg.id!==undefined&&pending.has(msg.id)){const p=pending.get(msg.id);pending.delete(msg.id);clearTimeout(p.timeout);msg.error?p.reject(uiError('pluginReadFailed')):p.resolve(msg.result);return}if(msg.method==='ui/notifications/tool-result'&&msg.params?.structuredContent){try{readToolResult(msg.params);render(msg.params.structuredContent)}catch(e){showError(e)}}if(msg.method==='ui/notifications/host-context-changed')applyHostContext(msg.params)});
 window.addEventListener('openai:set_globals',event=>applyHostContext(event.detail?.globals));
 window.addEventListener('languagechange',()=>{if(languagePreference==='auto'&&!hostLocale&&!toolLocale)localize()});
-async function connect(){if(!embedded)return null;try{const result=await rpc('ui/initialize',{appInfo:{name:'token-monitor',version:'1.6.0'},appCapabilities:{},protocolVersion:'2026-01-26'});applyHostContext(result?.hostContext);notify('ui/notifications/initialized',{});return 'mcp'}catch(e){if(window.openai?.callTool){applyHostContext(window.openai);return 'legacy'}throw e}}
+async function connect(){if(!embedded)return null;try{const result=await rpc('ui/initialize',{appInfo:{name:'token-monitor',version:'1.6.1'},appCapabilities:{},protocolVersion:'2026-01-26'});applyHostContext(result?.hostContext);notify('ui/notifications/initialized',{});return 'mcp'}catch(e){if(window.openai?.callTool){applyHostContext(window.openai);return 'legacy'}throw e}}
 async function callTool(name,args){try{ready=ready||connect();const mode=await ready;return readToolResult(mode==='legacy'?await window.openai.callTool(name,args):await rpc('tools/call',{name,arguments:args}))}catch(e){throw e?.i18nKey?e:uiError('pluginReadFailed')}}
 function setText(id,value){const el=$(id),text=String(value);if(el.textContent!==text)el.textContent=text}
 function setNumber(id,n){setText(id,compact(n));const title=full(n);if($(id).title!==title)$(id).title=title}

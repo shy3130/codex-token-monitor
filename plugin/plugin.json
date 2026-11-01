@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "token-monitor",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "本机 Codex 用量、TPS 与 API 参考费用 / Local Codex usage, TPS and estimated API costs.",
   "author": {
     "name": "Local Tools"

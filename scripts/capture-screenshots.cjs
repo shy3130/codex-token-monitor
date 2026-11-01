@@ -196,6 +196,38 @@ async function main() {
     });
     assert.deepEqual(chinese, [], 'English UI should not contain untranslated Chinese copy');
     await require('../tests/browser_i18n.cjs')(browser, base);
+    // Exercise real overview/model rendering with large synthetic counts in both languages.
+    await page.evaluate(() => clearTimeout(timer));
+    for (const language of ['zh', 'en']) {
+      await page.locator('#language').selectOption(language);
+      for (const [total, expected] of [[1500000000, '1.500B'], [999995000, '1.000B'], [999999499999, '999.999B'], [1500000000000, '1.50T']]) {
+        await page.evaluate(total => {
+          const data = structuredClone(last), period = data.periods[selected];
+          const input = Math.floor(total * 0.8), output = total - input, cached = Math.floor(input * 0.75);
+          Object.assign(period.summary, { total, input, output, cached, fresh: input - cached,
+            reasoning: 0, cache_hit_rate: cached / input });
+          period.models = [{ model: 'unit-format-test', requests: 1, total, input, output, cached,
+            reasoning: 0, token_share: 1, speed_summary: { samples: 0, tps: null } }];
+          period.api_estimate = null;
+          render(data);
+        }, total);
+        assert.equal(await page.locator('#total').textContent(), expected);
+        assert.equal(await page.locator('#models .model-tokens dd').first().textContent(), expected);
+        assert.equal(await page.locator('#total').getAttribute('title'), new Intl.NumberFormat('en-US').format(total));
+        for (const width of [320, 390, 1440]) {
+          await page.setViewportSize({ width, height: 1050 });
+          assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false,
+            `${language}: ${expected} should fit at ${width}px`);
+          assert.equal(await page.evaluate(() => {
+            const hero = document.querySelector('.hero').getBoundingClientRect();
+            return ['.total', '.hero .rate'].every(selector => {
+              const box = document.querySelector(selector).getBoundingClientRect();
+              return box.left >= hero.left && box.right <= hero.right;
+            });
+          }), true, `${language}: ${expected} should keep tokens and TPS inside the card at ${width}px`);
+        }
+      }
+    }
     assert.deepEqual(errors, [], 'Dashboard should have no browser script errors');
     assert.deepEqual(await fs.readFile(path.join(root, 'plugin/ui/monitor.html')), uiSource,
       'UI source must not change while screenshots are being captured');
@@ -210,7 +242,7 @@ async function main() {
       capturedAt: new Date().toISOString(), data: 'synthetic',
       uiSource: { path: 'plugin/ui/monitor.html', sha256: createHash('sha256').update(uiSource).digest('hex') },
       images }, null, 2) + '\n');
-    console.log(`OK: ${Object.keys(files).length} screenshots of v${version}; bilingual layouts, host/legacy locale, state preservation, metrics and pagination`);
+    console.log(`OK: ${Object.keys(files).length} screenshots of v${version}; bilingual layouts, host/legacy locale, large token units, state preservation, metrics and pagination`);
     console.log(`Saved to ${output}`);
   } finally {
     try {

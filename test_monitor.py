@@ -354,6 +354,19 @@ class MonitorTests(unittest.TestCase):
         self.assertEqual(period['api_estimate']['unpriced_requests'], 1)
         self.assertNotIn('account_quota', self.store.snapshot(now=now))
 
+    def test_billion_token_totals_and_costs_use_raw_counts_without_unit_conversion(self):
+        now = dt.datetime(2026, 11, 1, 12, tzinfo=m.TZ)
+        self.store.add_usage('large', 't', 'a', now.timestamp()-60, 'glm-5.3',
+            dict(input_tokens=1_200_000_000, cached_input_tokens=200_000_000,
+                 output_tokens=2_000_000, reasoning_output_tokens=500_000))
+        period = self.store.snapshot(now=now)['periods']['today']
+        self.assertEqual(period['summary']['total'], 1_202_000_000)
+        self.assertEqual(period['summary']['fresh'], 1_000_000_000)
+        self.assertEqual(period['models'][0]['total'], 1_202_000_000)
+        # Bundled rates: $1.40/M fresh, $0.26/M cached and $4.40/M output.
+        self.assertAlmostEqual(period['api_estimate']['dollars'], 1460.8)
+        self.assertAlmostEqual(period['models'][0]['api_estimate']['dollars'], 1460.8)
+
     def test_otlp_nanosecond_timestamps_work_without_event_timestamp(self):
         start = otel('codex.websocket_request', '', success='true')
         end = otel('codex.sse_event', '', **{'event.kind': 'response.completed',
