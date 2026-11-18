@@ -13,9 +13,12 @@ import json
 import math
 import os
 from pathlib import Path
+import re
 import sqlite3
+import sys
 import threading
 import time
+from http.client import HTTPException, HTTPSConnection
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 
@@ -51,22 +54,112 @@ def number(value):
 
 EFFORTS = frozenset(('none', 'minimal', 'low', 'medium', 'high', 'xhigh',
                      'max', 'ultra', 'persistent'))
-# Standard text-token API prices per million, verified on 2026-10-29.
+# Standard text-token API prices per million.
 # Rates are (fresh input, cached input, output, vendor). These hypothetical
 # rates are not subscription spending or remaining account credit.
-API_PRICE_DATE = '2026-10-29'
+API_PRICE_DATE = '2026-11-18'
 API_PRICES = {
+    'gpt-6.2-astra': (8.0, 0.40, 40.0, 'OpenAI'),
+    'gpt-6.2-sol': (2.0, 0.10, 10.0, 'OpenAI'),
     'gpt-6-astra': (10.0, 1.0, 50.0, 'OpenAI'),
     'gpt-6.1-sol': (2.0, 0.10, 10.0, 'OpenAI'),
     'gpt-6.1-terra': (1.0, 0.05, 5.0, 'OpenAI'),
     'gpt-6-sol': (2.0, 0.20, 10.0, 'OpenAI'),
     'gpt-6-luna': (0.10, 0.01, 0.50, 'OpenAI'),
-    'gpt-5.6': (4.0, 0.40, 20.0, 'OpenAI'),  # Official alias for GPT-5.6 Sol.
     'gpt-5.6-sol': (4.0, 0.40, 20.0, 'OpenAI'),
     'gpt-5.6-terra': (2.0, 0.20, 12.0, 'OpenAI'),
     'gpt-5.6-luna': (0.20, 0.02, 1.20, 'OpenAI'),
     'glm-5.3': (1.40, 0.26, 4.40, 'Z.ai'),
 }
+
+
+def parse_openai_prices(markdown):
+    """Read Standard text rates by column name, excluding other pricing tiers."""
+    standard = re.search(r'^### Standard pricing data\s*\n(.*?)(?=^#{1,6} |\Z)',
+                         markdown, re.MULTILINE | re.DOTALL)
+    if not standard:
+        raise ValueError('OpenAI Standard pricing section is missing')
+
+    def rates(cells, indices):
+        values = []
+        for index in indices:
+            cell = cells[index]
+            if cell in ('-', '—', '–'):
+                values.append(None)
+            elif re.fullmatch(r'\$\d+(?:,\d{3})*(?:\.\d+)?', cell):
+                values.append(float(cell[1:].replace(',', '')))
+            else:
+                raise ValueError('Unrecognized OpenAI price')
+        if any(v is not None and not math.isfinite(v) for v in values):
+            raise ValueError('Unrecognized OpenAI price')
+        if (values[0] is None or values[2] is None) and any(v is not None for v in values):
+            raise ValueError('Incomplete OpenAI input or output price')
+        if values[0] is None:
+            return None
+        fresh, cached, output = values
+        return fresh, fresh if cached is None else cached, output  # No published cache discount.
+
+    prices = {}
+    columns = ()
+    lines = standard[1].splitlines()
+    # Codex-specific models can be listed in the specialized Standard table.
+    specialized = re.search(r'^Standard\s+### Grouped Pricing Table data\s+'
+                            r'(\| Category \| Model \| Input \| Output \| Cached input [^\n]*'
+                            r'(?:\n\|[^\n]*)*)', markdown, re.MULTILINE)
+    if specialized:
+        lines.extend('|' + line.split('|', 2)[2] for line in specialized[1].splitlines()
+                     if line.startswith(('| Category |', '| Codex |')))
+    for line in lines:
+        line = line.strip()
+        if not line.startswith('|'):
+            continue
+        cells = [cell.strip() for cell in line.strip('|').split('|')]
+        if cells[0] == 'Model':
+            columns = tuple(cell.lower() for cell in cells)
+            prefix = 'short context ' if 'short context input' in columns else ''
+            names = ('input', 'cached input', 'output')
+            short_columns = tuple(columns.index(prefix + name) for name in names)
+            long_columns = (tuple(columns.index('long context ' + name) for name in names)
+                            if 'long context input' in columns else ())
+        elif columns and cells[0] != '---':
+            model = re.fullmatch(r'`?([a-z0-9][a-z0-9.-]*)`?(?: \([^)]*\))?', cells[0])
+            if not model or len(cells) != len(columns):
+                raise ValueError('Unrecognized OpenAI model price row')
+            short = rates(cells, short_columns)
+            long = rates(cells, long_columns) if long_columns else None
+            if short is not None:
+                name = model[1]
+                if name in prices and prices[name] != (short, long):
+                    raise ValueError('Conflicting OpenAI Standard prices')
+                prices[name] = short, long
+    if not prices:
+        raise ValueError('OpenAI Standard pricing contains no model prices')
+    return prices
+
+
+def refresh_openai_prices(store):
+    if store.prices_checked_at:
+        time.sleep(max(0, 86400 - (time.time() - store.prices_checked_at)))
+    while True:
+        connection = HTTPSConnection('developers.openai.com', timeout=10)
+        try:
+            connection.request('GET', '/api/docs/pricing.md')
+            with connection.getresponse() as response:
+                if response.status != 200:
+                    raise ValueError(f'HTTP {response.status}')
+                limit = 512 * 1024
+                payload = response.read(limit + 1)
+                if len(payload) > limit:
+                    raise ValueError('OpenAI pricing download is too large')
+            store.update_openai_prices(payload.decode('utf-8'))
+        except (OSError, HTTPException, ValueError, sqlite3.Error) as error:
+            print(f'OpenAI pricing refresh failed: {error}', file=sys.stderr, flush=True)
+            delay = 3600
+        else:
+            delay = 86400
+        finally:
+            connection.close()
+        time.sleep(delay)
 
 
 def effort_value(value):
@@ -120,6 +213,37 @@ class Store:
         self.last_scan = 0
         self.scan_error = None
         self.files = 0
+        self.openai_prices = {}
+        self.prices_checked_at = 0
+        saved = self.db.execute('SELECT value FROM meta WHERE key=?', ('openai_pricing',)).fetchone()
+        if saved:
+            try:
+                checked_at, markdown = json.loads(saved[0])
+                self.openai_prices = parse_openai_prices(markdown)
+                self.prices_checked_at = epoch(checked_at)
+            except (TypeError, ValueError):
+                pass  # Fall back to bundled prices if the cached page is unusable.
+
+    def update_openai_prices(self, markdown):
+        prices = parse_openai_prices(markdown)
+        checked_at = time.time()
+        with self.lock:
+            with self.db:
+                self.db.execute('INSERT OR REPLACE INTO meta VALUES (?,?)',
+                                ('openai_pricing', json.dumps((checked_at, markdown))))
+            self.openai_prices = prices
+            self.prices_checked_at = checked_at
+
+    def api_price(self, model):
+        if model == 'gpt-5.6' and model not in self.openai_prices:
+            model = 'gpt-5.6-sol'  # Official alias in older Codex records.
+        if model in self.openai_prices:
+            return ('OpenAI', *self.openai_prices[model])
+        if model in API_PRICES:
+            fresh, cached, output, vendor = API_PRICES[model]
+            long = (2 * fresh, 2 * cached, 1.5 * output) if vendor == 'OpenAI' else None
+            return vendor, (fresh, cached, output), long
+        return None, None, None
 
     def add_usage(self, key, thread, turn, ts, model, usage, effort=None):
         with self.lock:
@@ -274,36 +398,38 @@ class Store:
             model['token_share'] = model['total'] / summary['total'] if summary['total'] else 0
         priced, unpriced, dollars = 0, 0, 0.0
         model_costs, model_long = {}, {}
+        prices = {model['model']: self.api_price(model['model']) for model in models}
         for r in self.db.execute('''SELECT model, input>272000 long_context,
             COUNT(*) requests, SUM(MAX(input-cached,0)) fresh,
             SUM(MIN(input,cached)) cached, SUM(output) output FROM usage
             WHERE ts>=? AND ts<? GROUP BY model,long_context''', (since, until)):
-            rates = API_PRICES.get(r['model'])
-            if rates is None:
+            _, short, long = prices[r['model']]
+            if short is None:
                 unpriced += r['requests']
                 model_costs[r['model']] = None
                 continue
             priced += r['requests']
-            # OpenAI's listed models have an API long-context rate above 272K;
-            # Z.ai's GLM price is flat, so it must not inherit that surcharge.
-            input_factor, output_factor = (2, 1.5) if r['long_context'] and rates[3] == 'OpenAI' else (1, 1)
-            if r['long_context'] and rates[3] == 'OpenAI':
+            use_long = r['long_context'] and long is not None
+            if use_long:
                 model_long[r['model']] = model_long.get(r['model'], 0) + r['requests']
-            amount = (input_factor * (r['fresh'] * rates[0] + r['cached'] * rates[1])
-                      + output_factor * r['output'] * rates[2]) / 1_000_000
+            fresh_rate, cached_rate, output_rate = long if use_long else short
+            amount = (r['fresh'] * fresh_rate + r['cached'] * cached_rate
+                      + r['output'] * output_rate) / 1_000_000
             dollars += amount
             model_costs[r['model']] = model_costs.get(r['model'], 0.0) + amount
         for model in models:
-            rates = API_PRICES.get(model['model'])
+            provider, short, _ = prices[model['model']]
             model['api_estimate'] = dict(
                 dollars=model_costs.get(model['model']),
-                provider=rates[3] if rates else None,
-                input_per_million=rates[0] if rates else None,
-                cached_per_million=rates[1] if rates else None,
-                output_per_million=rates[2] if rates else None,
+                provider=provider,
+                input_per_million=short[0] if short else None,
+                cached_per_million=short[1] if short else None,
+                output_per_million=short[2] if short else None,
                 long_context_requests=model_long.get(model['model'], 0))
+        price_date = (dt.datetime.fromtimestamp(self.prices_checked_at, TZ).date().isoformat()
+                      if self.prices_checked_at else API_PRICE_DATE)
         api_estimate = dict(dollars=dollars if priced else None, priced_requests=priced,
-                            unpriced_requests=unpriced, price_as_of=API_PRICE_DATE)
+                            unpriced_requests=unpriced, price_as_of=price_date)
         coverage = dict(self.db.execute('''SELECT MIN(ts) first_record, MAX(ts) last_record,
             COUNT(DISTINCT strftime('%Y-%m-%d',ts,'unixepoch','+8 hours')) recorded_days
             FROM usage WHERE ts>=? AND ts<?''', (since, until)).fetchone())
@@ -621,6 +747,7 @@ def main():
     scanner = Scanner(store, [args.codex_dir / 'sessions', args.codex_dir / 'archived_sessions'])
     scanner.scan()
     threading.Thread(target=scanner.run, daemon=True).start()
+    threading.Thread(target=refresh_openai_prices, args=(store,), daemon=True).start()
     serve(store, args.port)
 
 

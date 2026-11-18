@@ -44,9 +44,10 @@ def main():
             port = sock.getsockname()[1]
         base = f'http://127.0.0.1:{port}'
         env = {**os.environ, 'PYTHONDONTWRITEBYTECODE': '1'}
-        process = subprocess.Popen([sys.executable, str(ROOT / 'monitor.py'), '--port', str(port),
+        launch = 'import monitor; monitor.refresh_openai_prices = lambda store: None; monitor.main()'
+        process = subprocess.Popen([sys.executable, '-c', launch, '--port', str(port),
                                     '--codex-dir', str(root / 'codex'), '--data-dir', str(root / 'data')],
-                                   stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, env=env)
+                                   stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, env=env, cwd=ROOT)
         try:
             opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
             for _ in range(50):

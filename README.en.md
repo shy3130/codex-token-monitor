@@ -122,9 +122,11 @@ Choose **中文** or **English** in the footer to override automatic detection. 
 | Total tokens | Input + output; cached tokens are included in input, and reasoning tokens in output |
 | Abbreviations | Decimal K (thousand), M (million), B (billion), T (trillion); larger counts use scientific notation. Calculations use raw counts |
 | Average TPS | Total output tokens from fully timed requests ÷ their total duration, including initial wait and reasoning, excluding tools between requests |
-| Estimated API cost | Calculated per model from the bundled **2026-10-29** standard text-token price snapshot; models without a known price are excluded from the sum |
+| Estimated API cost | Calculated per model using official OpenAI Standard text-token rates. Models without a known price are excluded from the sum. |
 
-Costs are estimates, not actual invoices, subscription charges or remaining allowances. Tool charges and other fees are not included. The price table does not update automatically. Source links: [OpenAI API pricing](https://developers.openai.com/api/docs/pricing), [Z.ai pricing](https://docs.z.ai/guides/overview/pricing).
+The collector checks [OpenAI API pricing](https://developers.openai.com/api/docs/pricing) daily and matches prices by model ID. A failed update leaves the last successful prices in use and retries hourly. Bundled rates are available before the first successful sync. The sync only downloads the public price table. Z.ai still uses [bundled rates](https://docs.z.ai/guides/overview/pricing).
+
+Costs are estimates, not actual invoices, subscription charges or remaining allowances. When cached input has no separate price, the estimate uses the regular input rate. Cache writes, tool fees and service tier differences are excluded.
 
 Collection currently covers **local Codex sessions and telemetry**. Other MCP clients can view those statistics, but their own calls and ordinary ChatGPT web or mobile chats are not automatically collected. The statistics database stores counts, models, reasoning settings, and session/request identifiers; it does not intentionally store prompts or model responses.
 

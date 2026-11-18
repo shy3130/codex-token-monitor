@@ -25,6 +25,35 @@ def payload(*records):
     return {'resourceLogs': [{'scopeLogs': [{'logRecords': list(records)}]}]}
 
 
+PRICING_PAGE = '''# Pricing
+### Standard pricing data
+| Model | Short context input | Short context output | Short context cached input | Long context input | Long context output | Long context cached input |
+| --- | --- | --- | --- | --- | --- | --- |
+| gpt-new-model | $3.00 | $12.00 | $0.30 | $7.00 | $19.00 | $0.70 |
+
+| Model | Input | Output | Cached input |
+| --- | --- | --- | --- |
+| gpt-new-mini | $1.00 | $5.00 | - |
+
+### Batch pricing data
+| Model | Input | Output | Cached input |
+| --- | --- | --- | --- |
+| gpt-new-model | $1.50 | $6.00 | $0.15 |
+
+Standard
+### Grouped Pricing Table data
+| Category | Model | Input | Output | Cached input | 30m write |
+| --- | --- | --- | --- | --- | --- |
+| Codex | gpt-new-codex | $2.00 | $8.00 | $0.20 | - |
+
+Fast
+### Grouped Pricing Table data
+| Category | Model | Input | Output | Cached input |
+| --- | --- | --- | --- | --- |
+| Codex | gpt-new-codex | $4.00 | $16.00 | $0.40 |
+'''
+
+
 class MonitorTests(unittest.TestCase):
     def setUp(self):
         self.store = m.Store(':memory:')
@@ -324,7 +353,7 @@ class MonitorTests(unittest.TestCase):
         estimate = self.store.snapshot(now=now)['periods']['today']['api_estimate']
         self.assertAlmostEqual(estimate['dollars'], 0.148 + 3.22)
         self.assertEqual((estimate['priced_requests'], estimate['unpriced_requests']), (2, 1))
-        self.assertEqual(estimate['price_as_of'], '2026-10-29')
+        self.assertEqual(estimate['price_as_of'], m.API_PRICE_DATE)
 
     def test_api_estimate_is_unavailable_not_zero_if_no_models_are_priced(self):
         now = dt.datetime(2026, 10, 29, 12, tzinfo=m.TZ)
@@ -333,6 +362,41 @@ class MonitorTests(unittest.TestCase):
         estimate = self.store.snapshot(now=now)['periods']['today']['api_estimate']
         self.assertIsNone(estimate['dollars'])
         self.assertEqual(estimate['unpriced_requests'], 1)
+
+    def test_price_sync_reads_standard_rates_and_uses_full_input_for_models_without_cache_rates(self):
+        rates = m.parse_openai_prices(PRICING_PAGE)
+        self.assertEqual(rates, {
+            'gpt-new-model': ((3.0, 0.3, 12.0), (7.0, 0.7, 19.0)),
+            'gpt-new-mini': ((1.0, 1.0, 5.0), None),
+            'gpt-new-codex': ((2.0, 0.2, 8.0), None),
+        })
+
+    def test_new_model_prices_reprice_history_and_survive_refresh_failure_and_restart(self):
+        stamp = m.epoch('2026-11-18T09:00:00+08:00')
+        now = dt.datetime(2026, 11, 18, 12, tzinfo=m.TZ)
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'metrics.sqlite3'
+            store = m.Store(path)
+            store.add_usage('request', 'thread', 'turn', stamp, 'gpt-new-model',
+                            dict(input_tokens=400000, cached_input_tokens=300000, output_tokens=10000))
+            self.assertIsNone(store.snapshot(now=now)['periods']['today']['api_estimate']['dollars'])
+            with mock.patch.object(m.time, 'time', return_value=stamp):
+                store.update_openai_prices(PRICING_PAGE)
+            with self.assertRaises(ValueError):
+                store.update_openai_prices(PRICING_PAGE.replace('$19.00', 'unknown'))
+            model = store.snapshot(now=now)['periods']['today']['models'][0]['api_estimate']
+            self.assertEqual(model['long_context_requests'], 1)
+            self.assertAlmostEqual(model['dollars'], 1.10)
+            store.db.close()
+
+            reopened = m.Store(path)
+            try:
+                estimate = reopened.snapshot(now=now)['periods']['today']['api_estimate']
+                self.assertEqual(estimate['price_as_of'], '2026-11-18')
+                self.assertEqual(estimate['priced_requests'], 1)
+                self.assertAlmostEqual(estimate['dollars'], 1.10)
+            finally:
+                reopened.db.close()
 
     def test_per_model_api_estimates_sum_and_respect_vendor_context_rules(self):
         now = dt.datetime(2026, 10, 29, 12, tzinfo=m.TZ)
