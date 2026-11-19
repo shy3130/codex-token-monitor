@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-1.6.1-5267CB?style=flat-square" alt="Version 1.6.1"></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-1.6.2-5267CB?style=flat-square" alt="Version 1.6.2"></a>
   <img src="https://img.shields.io/badge/Python-3.9%2B-3776AB?style=flat-square&amp;logo=python&amp;logoColor=white" alt="Python 3.9+">
   <img src="https://img.shields.io/badge/dependencies-standard_library-3D9D91?style=flat-square" alt="Python standard library only">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-64748B?style=flat-square" alt="MIT license"></a>
