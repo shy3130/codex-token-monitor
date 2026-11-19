@@ -92,6 +92,28 @@ class MonitorTests(unittest.TestCase):
             **{'event.kind': 'response.completed', 'output_token_count': '30'})))
         self.assertIsNone(self.store.snapshot()['speeds'][0]['tps'])
 
+    def test_http_status_times_response_despite_duplicate_completion_notification(self):
+        self.store.ingest(payload(
+            otel('codex.api_request', '2026-10-29T02:00:02Z',
+                 **{'http.response.status_code': 200, 'duration_ms': 2000, 'endpoint': '/responses'}),
+            otel('codex.sse_event', '2026-10-29T02:00:09.998Z',
+                 **{'event.kind': 'response.completed', 'duration_ms': 2}),
+            otel('codex.sse_event', '2026-10-29T02:00:10Z',
+                 **{'event.kind': 'response.completed', 'output_token_count': 100, 'ttft_ms': 4000})))
+        self.assertEqual(self.store.snapshot()['latest']['tps'], 10)
+        self.assertEqual(self.store.db.execute('SELECT COUNT(*) FROM request_ends').fetchone()[0], 1)
+
+    def test_failed_or_unrelated_http_requests_cannot_supply_timing(self):
+        for i, attributes in enumerate((
+            {'http.response.status_code': 429},
+            {'http.response.status_code': 200, 'endpoint': '/responses/compact'},
+            {'http.response.status_code': 200, 'error.message': 'connection closed'},
+        )):
+            self.store.ingest(payload(otel('codex.api_request', f'2026-10-29T02:00:0{i}Z', **attributes)))
+        self.store.ingest(payload(otel('codex.sse_event', '2026-10-29T02:00:10Z',
+            **{'event.kind': 'response.completed', 'output_token_count': 100})))
+        self.assertIsNone(self.store.snapshot()['speeds'][0]['tps'])
+
     def test_tool_time_between_requests_excluded(self):
         events = []
         for start, end in [('02:00:00', '02:00:02'), ('02:10:00', '02:10:02')]:

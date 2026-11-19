@@ -280,7 +280,15 @@ class Store:
                 if not thread:
                     continue
                 if name in ('codex.websocket_request', 'codex.api_request'):
-                    if str(a.get('success', '')).lower() != 'true':
+                    success = str(a.get('success', '')).lower()
+                    status = a.get('http.response.status_code')
+                    if name == 'codex.api_request':
+                        if a.get('endpoint') not in (None, '', '/responses', 'responses'):
+                            continue
+                        # HTTP logs use the status code, while WebSocket logs report success.
+                        if status is not None and success != 'false':
+                            success = 'true' if 200 <= number(status) < 300 else 'false'
+                    if success != 'true' or a.get('error.message'):
                         continue
                     key = hashlib.sha256(('%s|%s|%.6f' %
                         (thread, name, stamp)).encode()).hexdigest()
@@ -292,6 +300,10 @@ class Store:
                 if name not in ('codex.sse_event', 'codex.websocket_event'):
                     continue
                 if a.get('event.kind') != 'response.completed':
+                    continue
+                # HTTP emits a stream event before the usage-bearing completion.
+                # Only the latter (or an explicit failure) can end a timed request.
+                if name == 'codex.sse_event' and 'output_token_count' not in a and not a.get('error.message'):
                     continue
                 inp = int(number(a.get('input_token_count')))
                 out = int(number(a.get('output_token_count')))
